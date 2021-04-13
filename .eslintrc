@@ -1,0 +1,30 @@
+{
+    "parser": "@typescript-eslint/parser", // Specifies the ESLint parser
+    "parserOptions": {
+        "ecmaVersion": 2020, // Allows for the parsing of modern ECMAScript features
+        "sourceType": "module", // Allows for the use of imports
+        "project": ["./tsconfig.eslint.json"]
+    },
+    "extends": [
+        "plugin:@typescript-eslint/recommended", // Uses the recommended rules from the @typescript-eslint/eslint-plugin
+        "plugin:react/recommended",
+        "plugin:react-hooks/recommended",
+        "airbnb-typescript",
+        "prettier"
+    ],
+    "rules": {
+        "react/prop-types": "off",
+        "import/no-named-as-default": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "react/jsx-props-no-spreading": "off"
+    },
+    "overrides": [
+        {
+            "files": ["*.ts", "*.tsx"],
+            "parserOptions": {
+                "project": ["./tsconfig.eslint.json"]
+            }
+        }
+    ],
+    "ignorePatterns": ["*.js", "build/**/*"]
+}

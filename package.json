@@ -1,0 +1,56 @@
+{
+    "name": "kreme",
+    "version": "1.0.0",
+    "main": "build/index.js",
+    "module": "build/index.es.js",
+    "files": [
+        "build"
+    ],
+    "scripts": {
+        "build": "rollup -c",
+        "storybook": "start-storybook -p 7007",
+        "storybook:build": "build-storybook",
+        "test": "jest",
+        "test:watch": "jest --watch"
+    },
+    "license": "MIT",
+    "devDependencies": {
+        "@babel/core": "^7.13.15",
+        "@rollup/plugin-commonjs": "^18.0.0",
+        "@rollup/plugin-node-resolve": "^11.2.1",
+        "@storybook/addon-essentials": "^6.2.7",
+        "@storybook/react": "^6.2.7",
+        "@testing-library/jest-dom": "^5.11.10",
+        "@testing-library/react": "^11.2.6",
+        "@types/jest": "^26.0.22",
+        "@types/react": "^17.0.3",
+        "@typescript-eslint/eslint-plugin": "^4.4.1",
+        "@typescript-eslint/parser": "^4.22.0",
+        "babel-loader": "^8.2.2",
+        "babel-preset-react-app": "^10.0.0",
+        "eslint": "^7.24.0",
+        "eslint-config-prettier": "^8.1.0",
+        "eslint-plugin-prettier": "^3.3.1",
+        "eslint-plugin-react": "^7.20.3",
+        "identity-obj-proxy": "^3.0.0",
+        "jest": "^26.6.3",
+        "prettier": "^2.2.1",
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2",
+        "rollup": "^2.45.2",
+        "rollup-plugin-peer-deps-external": "^2.2.4",
+        "rollup-plugin-typescript2": "^0.30.0",
+        "ts-jest": "^26.5.4",
+        "typescript": "^4.2.4"
+    },
+    "peerDependencies": {
+        "react": ">=16.8.0",
+        "react-dom": ">=16.8.0"
+    },
+    "dependencies": {
+        "eslint-config-airbnb-typescript": "^12.3.1",
+        "eslint-plugin-import": "^2.22.0",
+        "eslint-plugin-jsx-a11y": "^6.3.1",
+        "eslint-plugin-react-hooks": "^4.0.8"
+    }
+}
