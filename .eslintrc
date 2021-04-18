@@ -16,7 +16,12 @@
         "react/prop-types": "off",
         "import/no-named-as-default": "off",
         "@typescript-eslint/explicit-module-boundary-types": "off",
-        "react/jsx-props-no-spreading": "off"
+        "react/jsx-props-no-spreading": "off",
+        "import/no-extraneous-dependencies": "off",
+        "prefer-template": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-empty-interface": "off",
+        "import/prefer-default-export": "off"
     },
     "overrides": [
         {
