@@ -1,10 +1,14 @@
 import React from 'react';
-import TestComponent from './TestComponent';
+import { Story } from '@storybook/react';
+import TestComponent, { Props } from './TestComponent';
 
 export default {
     title: 'TestComponent',
+    component: TestComponent,
 };
-
-export const Primary = () => <TestComponent theme='primary' />;
-
+const Template: Story<Props> = (args) => <TestComponent {...args} />;
+export const Primary = Template.bind({});
+Primary.args = {
+    theme: 'hey',
+};
 export const Secondary = () => <TestComponent theme='secondary' />;
