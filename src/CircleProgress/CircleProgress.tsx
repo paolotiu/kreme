@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
+import { motion } from 'framer-motion';
 import React, { HTMLProps } from 'react';
-import { transitionDurationEase } from '../utils/transitionDurationEase';
+import t from '../shared/theme';
 
 const Wrapper = styled.div`
     font-family: inherit;
@@ -13,22 +14,14 @@ const Wrapper = styled.div`
         left: 50%;
         transform: translate(-50%, -50%);
     }
-    circle {
-        fill: ${({ theme }) => theme.colors.lightest};
-        transition: fill 0.2s ease-in;
-    }
+
     z-index: 1;
     width: 100%;
     max-width: 100px;
 `;
 
-interface CircleProps {
-    fill?: string;
-}
-const Circle = styled.circle<CircleProps>`
-    fill: ${({ theme, fill }) => fill || theme.colors.lightest};
-    transition: fill ${({ theme }) => transitionDurationEase(theme)};
-`;
+interface CircleProps {}
+const Circle = styled(motion.circle)<CircleProps>``;
 export interface Props extends Omit<HTMLProps<HTMLDivElement>, 'as'> {
     progress: number;
     backgroundColor?: string;
@@ -46,17 +39,18 @@ export interface Props extends Omit<HTMLProps<HTMLDivElement>, 'as'> {
 
 interface PathProps {
     stroke?: string;
+    strokeWidth: number;
+    strokeDasharray: number;
+    strokeLinecap: string;
 }
 
-const Path = styled.path<PathProps>`
+const Path = styled(motion.path)<PathProps>`
     fill: none;
     stroke-linecap: round;
-    stroke: ${({ theme, stroke }) => stroke || theme.colors.primary};
+    /* stroke: ${({ theme, stroke }) => stroke || theme.colors.primary}; */
     stroke-width: ${(props) => props.strokeWidth};
     stroke-dasharray: ${(props) => `${props.strokeDasharray}, 251.2`};
     stroke-linecap: ${(props) => props.strokeLinecap || 'round'};
-    transition: stroke ${({ theme }) => transitionDurationEase(theme)},
-        stroke-dasharray ${({ theme }) => transitionDurationEase(theme)};
 `;
 
 export function getProgressStrokeValue(num: number) {
@@ -64,41 +58,53 @@ export function getProgressStrokeValue(num: number) {
 }
 
 const CircleProgress = ({
-    progressBarColor,
+    progressBarColor = t.colors.primary,
+    backgroundColor = t.colors.lightest,
     completedBackgroundColor,
     completedProgressBarColor,
     label,
     progress,
     progressBarStyle = 'round',
     progressBarWidth = 3,
-    backgroundColor,
     ...rest
-}: Props) => (
-    <Wrapper {...rest}>
-        <svg id='svg' viewBox='0 0 100 100'>
-            <Circle cx='50' cy='50' r='40' fill={progress === 100 ? backgroundColor : completedBackgroundColor} />
-            <path
-                stroke='gray'
-                opacity={0.2}
-                fill='none'
-                strokeWidth={progressBarWidth - 1}
-                d='M50 10
+}: Props) => {
+    const isFinished = progress === 100;
+    return (
+        <Wrapper {...rest}>
+            <svg id='svg' viewBox='0 0 100 100'>
+                <Circle
+                    cx='50'
+                    cy='50'
+                    r='40'
+                    animate={{ fill: isFinished ? completedBackgroundColor : backgroundColor }}
+                    initial={{ fill: backgroundColor }}
+                />
+                <path
+                    stroke='gray'
+                    opacity={0.2}
+                    fill='none'
+                    strokeWidth={progressBarWidth - 1}
+                    d='M50 10
               a 40 40 0 0 1 0 80
               a 40 40 0 0 1 0 -80'
-            />
-            <Path
-                data-testid='progress'
-                strokeWidth={progressBarWidth}
-                strokeLinecap={progressBarStyle}
-                stroke={progress === 100 ? completedProgressBarColor || progressBarColor : progressBarColor}
-                strokeDasharray={getProgressStrokeValue(progress)}
-                d='M50 10
+                />
+                <Path
+                    data-testid='progress'
+                    strokeWidth={progressBarWidth}
+                    strokeLinecap={progressBarStyle}
+                    initial={{ stroke: progressBarColor }}
+                    animate={{
+                        stroke: isFinished ? completedProgressBarColor || progressBarColor : progressBarColor,
+                    }}
+                    strokeDasharray={getProgressStrokeValue(progress)}
+                    d='M50 10
             a 40 40 0 0 1 0 80
             a 40 40 0 0 1 0 -80'
-            />
-        </svg>
-        <span>{label || progress + '%'}</span>
-    </Wrapper>
-);
+                />
+            </svg>
+            <span>{label || progress + '%'}</span>
+        </Wrapper>
+    );
+};
 
 export default CircleProgress;
