@@ -1,11 +1,12 @@
 import { colors, typography, spacing, transition } from './styles';
 
-const Theme = {
+export const theme = {
     colors,
     typography,
     spacing,
     transition,
 };
-type T = typeof Theme;
+type T = typeof theme;
 export interface ThemeInterface extends T {}
-export default Theme;
+
+export default theme;
