@@ -59,7 +59,7 @@ const Path = styled.path<PathProps>`
         stroke-dasharray ${({ theme }) => transitionDurationEase(theme)};
 `;
 
-function getProgressStrokeValue(num: number) {
+export function getProgressStrokeValue(num: number) {
     return ((num - 0) / (100 - 0)) * (251.2 - 0) + 0;
 }
 
@@ -87,6 +87,7 @@ const CircleProgress = ({
               a 40 40 0 0 1 0 -80'
             />
             <Path
+                data-testid='progress'
                 strokeWidth={progressBarWidth}
                 strokeLinecap={progressBarStyle}
                 stroke={progress === 100 ? completedProgressBarColor || progressBarColor : progressBarColor}
