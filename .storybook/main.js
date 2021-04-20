@@ -5,6 +5,22 @@ module.exports = {
     stories: ['../src/**/*.stories.tsx'],
     addons: ['@storybook/addon-essentials'],
     webpackFinal: async (config) => {
+        const fileLoaderRule = config.module.rules.find((rule) => rule.test && rule.test.test('.svg'));
+        fileLoaderRule.exclude = /\.svg$/;
+
+        config.module.rules.push({
+            test: /\.svg$/,
+            use: ['@svgr/webpack'],
+            include: path.resolve(__dirname, '../'),
+        });
+        config.module.rules.push({
+            test: /\.(ts|tsx)$/,
+            loader: require.resolve('babel-loader'),
+            options: {
+                plugins: ['emotion'],
+                presets: [['react-app', { flow: false, typescript: true }]],
+            },
+        });
         return {
             ...config,
             resolve: {
