@@ -31,14 +31,13 @@ const StyledFolder = styled.div`
     --padding-left: var(--item-padding-left);
     padding-left: var(--padding-left);
     cursor: pointer;
-    .__folder-label {
+    .__kreme-folder-label {
         padding: 0.2em 0.3em;
         display: flex;
         align-items: center;
         span {
             margin-left: var(--margin-left);
         }
-
         :hover {
             background-color: rgba(55, 53, 47, 0.08);
         }
