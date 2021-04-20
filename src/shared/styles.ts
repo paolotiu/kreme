@@ -37,6 +37,7 @@ export const spacing = {
         large: 30,
     },
     borderRadius: {
+        tiny: 2,
         small: 4,
         default: 10,
     },

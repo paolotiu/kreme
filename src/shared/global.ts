@@ -11,4 +11,10 @@ export const globalStyles = css`
         color: ${colors.darkest};
         font-family: ${typography.type.primary};
     }
+
+    div[role='button'] {
+        :not(:focus-visible) {
+            outline: none;
+        }
+    }
 `;
