@@ -5,6 +5,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import typescript from 'rollup-plugin-typescript2';
 import { babel } from '@rollup/plugin-babel';
 import svgr from '@svgr/rollup';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 const packageJson = require('./package.json');
 
@@ -29,5 +30,6 @@ export default {
         typescript({ useTsconfigDeclarationDir: true }),
         babel({ babelHelpers: 'bundled' }),
         svgr(),
+        visualizer(),
     ],
 };

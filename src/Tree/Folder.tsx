@@ -59,6 +59,9 @@ const variants: Variants = {
     },
     shown: {
         height: 'auto',
+        transition: {
+            ease: 'easeIn',
+        },
     },
 };
 const Folder = ({ name, children, isShown = false, noDropOnEmpty = false, onLabelClick, id }: Props) => {

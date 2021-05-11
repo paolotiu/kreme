@@ -1,5 +1,5 @@
 export interface TreeDataType {
-    type: string;
+    type: 'folder' | 'file';
     name: string;
     children?: TreeDataType[];
     id: string | number;
