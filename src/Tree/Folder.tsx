@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Chevron from '../assets/filledChevron.svg';
 import { svgToMotion } from '../utils/svgToMotion';
 import { TreeItemClickHandler } from './types';
@@ -33,7 +33,8 @@ const Children = styled(motion.div)`
     overflow: hidden;
 `;
 
-const StyledFolder = styled.div`
+const StyledFolder = styled.div<{ depth: number }>`
+    width: 100%;
     --margin-left: 5px;
     --chevron-width: 20px;
     --item-padding-left: 20px;
@@ -44,7 +45,9 @@ const StyledFolder = styled.div`
 
     cursor: pointer;
     .children {
-        padding-left: var(--padding-left);
+        .__kreme-folder-label {
+            padding-left: ${(props) => `calc(var(--padding-left) * ${props.depth + 1})`};
+        }
     }
     .__kreme-folder-label {
         padding: 0.2rem 0.3rem;
@@ -57,13 +60,14 @@ const StyledFolder = styled.div`
         }
         :hover {
             background-color: var(--hover-bg);
-            ${ActionContainer} {
+            .__kreme-folder-action-container {
                 display: flex;
             }
         }
 
         .__kreme-folder-label-name {
             display: flex;
+            align-items: center;
         }
     }
 `;
@@ -77,6 +81,8 @@ export interface TreeFolderProps {
     children?: React.ReactNode;
     onActionClick?: (e: React.MouseEvent<HTMLButtonElement>, id: string | number) => void;
     withActionButton?: boolean;
+    // 0 index
+    depth?: number;
 }
 
 const variants: Variants = {
@@ -99,9 +105,21 @@ const Folder = ({
     id,
     onActionClick,
     withActionButton = true,
+    depth = 0,
 }: TreeFolderProps) => {
     const [willShow, setWillShow] = useState(isShown);
-    const hasChevron = !noDropOnEmpty || !!children;
+    const childrenHasData = useMemo(() => {
+        let hasData = false;
+        React.Children.forEach(children, (child) => {
+            if (React.isValidElement(child)) {
+                hasData = !!child.props.data?.length;
+            }
+        });
+
+        return hasData;
+    }, [children]);
+    const hasChevron = !noDropOnEmpty || childrenHasData;
+
     const handleChevronClick = (e: React.MouseEvent | React.KeyboardEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -117,12 +135,7 @@ const Folder = ({
     };
 
     return (
-        <StyledFolder
-            // Adjust padding if no chevron
-            style={{
-                ['--padding-left' as any]: hasChevron ? '' : 'calc(var(--item-padding-left) + var(--chevron-width))',
-            }}
-        >
+        <StyledFolder depth={depth}>
             <div
                 role='button'
                 tabIndex={0}
@@ -134,7 +147,7 @@ const Folder = ({
                     <ChevronContainer
                         role='button'
                         tabIndex={0}
-                        style={{ display: hasChevron ? '' : 'none' }}
+                        style={{ visibility: hasChevron ? 'initial' : 'hidden' }}
                         onClick={handleChevronClick}
                         onKeyPress={handleChevronClick}
                     >
@@ -151,8 +164,10 @@ const Folder = ({
                 </div>
                 {withActionButton && (
                     <ActionContainer
+                        className='__kreme-folder-action-container'
                         as='button'
                         onClick={(e) => {
+                            e.stopPropagation();
                             if (onActionClick) {
                                 onActionClick(e, id);
                             }

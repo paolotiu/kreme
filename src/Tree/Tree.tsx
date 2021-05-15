@@ -16,9 +16,10 @@ export interface TreeProps {
     onFileClick?: TreeItemClickHandler;
     onFolderClick?: TreeItemClickHandler;
     onFolderActionClick?: (e: React.MouseEvent<HTMLButtonElement>, id: string | number) => void;
+    depth?: number;
 }
 
-const Tree = ({ data, noDropOnEmpty, onFolderClick, onFileClick }: TreeProps) => (
+const Tree = ({ data, noDropOnEmpty, onFolderClick, onFileClick, onFolderActionClick, depth = 0 }: TreeProps) => (
     <StyledTree data-testid='tree'>
         {data?.map((item) => {
             if (item.type === 'folder') {
@@ -28,15 +29,30 @@ const Tree = ({ data, noDropOnEmpty, onFolderClick, onFileClick }: TreeProps) =>
                         key={item.id + item.type}
                         noDropOnEmpty={noDropOnEmpty}
                         onLabelClick={onFolderClick}
+                        onActionClick={onFolderActionClick}
                         id={item.id}
+                        depth={depth}
                     >
-                        <Tree data={item.children} noDropOnEmpty={noDropOnEmpty} onFolderClick={onFolderClick} />
+                        <Tree
+                            data={item.children}
+                            depth={depth + 1}
+                            noDropOnEmpty={noDropOnEmpty}
+                            onFolderClick={onFolderClick}
+                        />
                     </Folder>
                 );
             }
 
             if (item.type === 'file') {
-                return <File key={item.id + item.type} name={item.name} onFileClick={onFileClick} id={item.id} />;
+                return (
+                    <File
+                        depth={depth}
+                        key={item.id + item.type}
+                        name={item.name}
+                        onFileClick={onFileClick}
+                        id={item.id}
+                    />
+                );
             }
 
             return <> </>;
