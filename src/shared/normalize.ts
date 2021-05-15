@@ -288,5 +288,15 @@ Add the correct display in Chrome and Safari.
     summary {
         display: list-item;
     }
+
+    button {
+        padding: unset;
+        border: none;
+        background-color: unset;
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+    }
 `;
+
 export default normalize;
