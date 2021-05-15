@@ -10,14 +10,15 @@ const StyledTree = styled.div`
     --item-padding-left: 20px;
 `;
 
-export interface Props {
+export interface TreeProps {
     data?: TreeDataType[];
     noDropOnEmpty?: boolean;
     onFileClick?: TreeItemClickHandler;
     onFolderClick?: TreeItemClickHandler;
+    onFolderActionClick?: (e: React.MouseEvent<HTMLButtonElement>, id: string | number) => void;
 }
 
-const Tree = ({ data, noDropOnEmpty, onFolderClick, onFileClick }: Props) => (
+const Tree = ({ data, noDropOnEmpty, onFolderClick, onFileClick }: TreeProps) => (
     <StyledTree data-testid='tree'>
         {data?.map((item) => {
             if (item.type === 'folder') {
@@ -43,4 +44,4 @@ const Tree = ({ data, noDropOnEmpty, onFolderClick, onFileClick }: Props) => (
     </StyledTree>
 );
 
-export default Tree;
+export default Object.assign(Tree, { Folder, File });

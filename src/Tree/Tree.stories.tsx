@@ -1,6 +1,7 @@
 import React from 'react';
 import { Meta, Story } from '@storybook/react';
-import Tree, { Props } from './Tree';
+import Tree, { TreeProps } from './Tree';
+import { TreeDataType } from './types';
 
 export default {
     title: 'Tree',
@@ -10,9 +11,13 @@ export default {
     },
 } as Meta;
 
-const Template: Story<Props> = (args) => <Tree {...args} />;
+const Template: Story<TreeProps> = (args) => (
+    <div style={{ maxWidth: '200px' }}>
+        <Tree {...args} />
+    </div>
+);
 
-const structure = [
+const structure: TreeDataType[] = [
     {
         id: 2,
         type: 'folder',
@@ -40,12 +45,12 @@ const structure = [
         ],
     },
 ];
-export const Default: Story<Props> = Template.bind({});
+export const Default: Story<TreeProps> = Template.bind({});
 Default.args = {
     data: structure,
 };
 
-export const NoDropOnEmpty: Story<Props> = Template.bind({});
+export const NoDropOnEmpty: Story<TreeProps> = Template.bind({});
 NoDropOnEmpty.args = {
     data: structure,
     noDropOnEmpty: true,

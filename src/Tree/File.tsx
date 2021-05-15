@@ -21,13 +21,13 @@ const StyledItem = styled.div`
     }
 `;
 
-interface Props {
+export interface TreeFileProps {
     onFileClick?: (id: string | number) => void;
     id: string | number;
     name: string;
 }
 
-const File = ({ onFileClick, name, id }: Props) => {
+const File = ({ onFileClick, name, id }: TreeFileProps) => {
     const handleClick = (e: React.KeyboardEvent | React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
