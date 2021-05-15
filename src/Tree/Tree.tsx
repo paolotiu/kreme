@@ -17,10 +17,19 @@ export interface TreeProps {
     onFolderClick?: TreeItemClickHandler;
     onFolderActionClick?: (e: React.MouseEvent<HTMLButtonElement>, id: string | number) => void;
     depth?: number;
+    className?: string;
 }
 
-const Tree = ({ data, noDropOnEmpty, onFolderClick, onFileClick, onFolderActionClick, depth = 0 }: TreeProps) => (
-    <StyledTree data-testid='tree'>
+const Tree = ({
+    data,
+    noDropOnEmpty,
+    onFolderClick,
+    onFileClick,
+    onFolderActionClick,
+    depth = 0,
+    className,
+}: TreeProps) => (
+    <StyledTree data-testid='tree' className={className}>
         {data?.map((item) => {
             if (item.type === 'folder') {
                 return (

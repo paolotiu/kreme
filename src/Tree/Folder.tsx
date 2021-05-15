@@ -33,7 +33,7 @@ const Children = styled(motion.div)`
     overflow: hidden;
 `;
 
-const StyledFolder = styled.div<{ depth: number }>`
+const StyledFolder = styled.div<{ depth: number; spaceLeft?: string }>`
     width: 100%;
     --margin-left: 5px;
     --chevron-width: 20px;
@@ -46,11 +46,13 @@ const StyledFolder = styled.div<{ depth: number }>`
     cursor: pointer;
     .children {
         .__kreme-folder-label {
-            padding-left: ${(props) => `calc(var(--padding-left) * ${props.depth + 1})`};
+            --initial-padding-left: ${(props) => `calc(var(--padding-left) * ${props.depth + 1} )`};
+            padding-left: ${(props) => `calc(var(--initial-padding-left) + ${props.spaceLeft || '0px'})`};
         }
     }
     .__kreme-folder-label {
         padding: 0.2rem 0.3rem;
+        /* padding-left: ${(props) => props.spaceLeft || 'initial'}; */
         display: flex;
         position: relative;
         align-items: center;
@@ -84,6 +86,7 @@ export interface TreeFolderProps {
     // 0 index
     depth?: number;
     calledRecursively?: boolean;
+    spaceLeft?: string;
 }
 
 const variants: Variants = {
@@ -108,6 +111,7 @@ const Folder = ({
     withActionButton = true,
     depth = 0,
     calledRecursively = false,
+    spaceLeft,
 }: TreeFolderProps) => {
     const [willShow, setWillShow] = useState(isShown);
     const childrenHasData = useMemo(() => {
@@ -136,7 +140,7 @@ const Folder = ({
     };
 
     return (
-        <StyledFolder depth={depth}>
+        <StyledFolder depth={depth} spaceLeft={spaceLeft}>
             <div
                 role='button'
                 tabIndex={0}
