@@ -32,6 +32,7 @@ const Tree = ({ data, noDropOnEmpty, onFolderClick, onFileClick, onFolderActionC
                         onActionClick={onFolderActionClick}
                         id={item.id}
                         depth={depth}
+                        calledRecursively
                     >
                         <Tree
                             data={item.children}

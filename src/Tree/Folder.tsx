@@ -83,6 +83,7 @@ export interface TreeFolderProps {
     withActionButton?: boolean;
     // 0 index
     depth?: number;
+    calledRecursively?: boolean;
 }
 
 const variants: Variants = {
@@ -106,6 +107,7 @@ const Folder = ({
     onActionClick,
     withActionButton = true,
     depth = 0,
+    calledRecursively = false,
 }: TreeFolderProps) => {
     const [willShow, setWillShow] = useState(isShown);
     const childrenHasData = useMemo(() => {
@@ -118,8 +120,7 @@ const Folder = ({
 
         return hasData;
     }, [children]);
-    const hasChevron = !noDropOnEmpty || childrenHasData;
-
+    const hasChevron = !noDropOnEmpty || (calledRecursively ? childrenHasData : !!children);
     const handleChevronClick = (e: React.MouseEvent | React.KeyboardEvent) => {
         e.preventDefault();
         e.stopPropagation();

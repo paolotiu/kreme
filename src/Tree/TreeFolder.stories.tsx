@@ -26,7 +26,7 @@ Default.args = {
 export const WithChildren: Story<TreeFolderProps> = (args) => (
     <div>
         <Tree.Folder id='1' name='parent' {...args}>
-            <Tree.Folder id='2' name='child' />
+            <Tree.Folder id='2' name='child' noDropOnEmpty />
         </Tree.Folder>
     </div>
 );
