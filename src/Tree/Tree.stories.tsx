@@ -55,3 +55,5 @@ NoDropOnEmpty.args = {
     data: structure,
     noDropOnEmpty: true,
 };
+
+export const IndividualFolder = () => <Tree.Folder id='1' name='Test' />;

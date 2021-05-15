@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Chevron from '../assets/filledChevron.svg';
 import { svgToMotion } from '../utils/svgToMotion';
 import { TreeItemClickHandler } from './types';
@@ -34,6 +34,9 @@ const Children = styled(motion.div)`
 `;
 
 const StyledFolder = styled.div`
+    --margin-left: 5px;
+    --chevron-width: 20px;
+    --item-padding-left: 20px;
     --chevron-color: ${({ theme }) => theme.colors.dark};
     --hover-bg: rgba(55, 53, 47, 0.08);
     // Variable to change whenever no chevron is requested
@@ -73,6 +76,7 @@ export interface TreeFolderProps {
     onLabelClick?: TreeItemClickHandler;
     children?: React.ReactNode;
     onActionClick?: (e: React.MouseEvent<HTMLButtonElement>, id: string | number) => void;
+    withActionButton?: boolean;
 }
 
 const variants: Variants = {
@@ -94,22 +98,10 @@ const Folder = ({
     onLabelClick,
     id,
     onActionClick,
+    withActionButton = true,
 }: TreeFolderProps) => {
     const [willShow, setWillShow] = useState(isShown);
-    const [hasChildren, setHasChildren] = useState(false);
-    const hasChevron = !noDropOnEmpty || hasChildren;
-    useEffect(() => {
-        if (noDropOnEmpty) {
-            React.Children.forEach(children, (el) => {
-                if (React.isValidElement(el)) {
-                    if (el.props.data?.length) {
-                        setHasChildren(true);
-                    }
-                }
-            });
-        }
-    }, [children, noDropOnEmpty]);
-
+    const hasChevron = !noDropOnEmpty || !!children;
     const handleChevronClick = (e: React.MouseEvent | React.KeyboardEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -157,16 +149,18 @@ const Folder = ({
 
                     <span>{name}</span>
                 </div>
-                <ActionContainer
-                    as='button'
-                    onClick={(e) => {
-                        if (onActionClick) {
-                            onActionClick(e, id);
-                        }
-                    }}
-                >
-                    <HiDotsHorizontal size='1em' style={{ color: 'var(--chevron-color)' }} />
-                </ActionContainer>
+                {withActionButton && (
+                    <ActionContainer
+                        as='button'
+                        onClick={(e) => {
+                            if (onActionClick) {
+                                onActionClick(e, id);
+                            }
+                        }}
+                    >
+                        <HiDotsHorizontal size='1em' style={{ color: 'var(--chevron-color)' }} />
+                    </ActionContainer>
+                )}
             </div>
             <AnimatePresence>
                 <Children
