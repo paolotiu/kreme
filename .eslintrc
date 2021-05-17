@@ -22,7 +22,9 @@
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-empty-interface": "off",
         "import/prefer-default-export": "off",
-        "react/require-default-props": "off"
+        "react/require-default-props": "off",
+        "arrow-body-style": "off",
+        "no-case-declarations": "off"
     },
     "overrides": [
         {
