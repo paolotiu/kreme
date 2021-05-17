@@ -1,10 +1,11 @@
 import styled from '@emotion/styled';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
-import React, { useMemo, useState } from 'react';
+import React, { CSSProperties, useMemo, useState } from 'react';
 import Chevron from '../assets/filledChevron.svg';
 import { svgToMotion } from '../utils/svgToMotion';
 import { TreeItemClickHandler } from './types';
+import ItemLabel from './ItemLabel/ItemLabel';
 
 const MotionChevron = styled(svgToMotion(Chevron))`
     fill: var(--chevron-color);
@@ -52,7 +53,7 @@ const StyledFolder = styled.div<{ depth: number; spaceLeft?: string }>`
     }
     .__kreme-folder-label {
         padding: 0.2rem 0.3rem;
-        /* padding-left: ${(props) => props.spaceLeft || 'initial'}; */
+        padding-left: ${(props) => props.spaceLeft || 'initial'};
         display: flex;
         position: relative;
         align-items: center;
@@ -87,6 +88,16 @@ export interface TreeFolderProps {
     depth?: number;
     calledRecursively?: boolean;
     spaceLeft?: string;
+    onFolderOpen?: () => void;
+    index?: number;
+    style?: CSSProperties;
+    draggable?: boolean;
+}
+
+export interface DraggableFolderProps extends TreeFolderProps {
+    draggable: true;
+    index: number;
+    depth: number;
 }
 
 const variants: Variants = {
@@ -100,100 +111,118 @@ const variants: Variants = {
         },
     },
 };
-const Folder = ({
-    name,
-    children,
-    isShown = false,
-    noDropOnEmpty = false,
-    onLabelClick,
-    id,
-    onActionClick,
-    withActionButton = true,
-    depth = 0,
-    calledRecursively = false,
-    spaceLeft,
-}: TreeFolderProps) => {
-    const [willShow, setWillShow] = useState(isShown);
-    const childrenHasData = useMemo(() => {
-        let hasData = false;
-        React.Children.forEach(children, (child) => {
-            if (React.isValidElement(child)) {
-                hasData = !!child.props.data?.length;
+const Folder = React.forwardRef<HTMLDivElement, TreeFolderProps | DraggableFolderProps>(
+    (
+        {
+            name,
+            children,
+            isShown = false,
+            noDropOnEmpty = false,
+            onLabelClick,
+            id,
+            onActionClick,
+            withActionButton = true,
+            depth = 0,
+            calledRecursively = false,
+            spaceLeft,
+            onFolderOpen,
+            style,
+            draggable,
+            index,
+        },
+        ref,
+    ) => {
+        const [willShow, setWillShow] = useState(isShown);
+        const childrenHasData = useMemo(() => {
+            let hasData = false;
+            React.Children.forEach(children, (child) => {
+                if (React.isValidElement(child)) {
+                    hasData = !!child.props.data?.length;
+                }
+            });
+
+            return hasData;
+        }, [children]);
+        const hasChevron = !noDropOnEmpty || (calledRecursively ? childrenHasData : !!children);
+        const handleChevronClick = (e: React.MouseEvent | React.KeyboardEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setWillShow(!willShow);
+            if (onFolderOpen) {
+                onFolderOpen();
             }
-        });
+        };
 
-        return hasData;
-    }, [children]);
-    const hasChevron = !noDropOnEmpty || (calledRecursively ? childrenHasData : !!children);
-    const handleChevronClick = (e: React.MouseEvent | React.KeyboardEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setWillShow(!willShow);
-    };
+        const handleLabelClick = (e: React.MouseEvent | React.KeyboardEvent) => {
+            if (onLabelClick) {
+                onLabelClick(id);
+            } else {
+                handleChevronClick(e);
+            }
+        };
 
-    const handleLabelClick = (e: React.MouseEvent | React.KeyboardEvent) => {
-        if (onLabelClick) {
-            onLabelClick(id);
-        } else {
-            handleChevronClick(e);
-        }
-    };
-
-    return (
-        <StyledFolder depth={depth} spaceLeft={spaceLeft}>
-            <div
-                role='button'
-                tabIndex={0}
-                className='__kreme-folder-label'
-                onClick={handleLabelClick}
-                onKeyPress={handleLabelClick}
-            >
-                <div className='__kreme-folder-label-name'>
-                    <ChevronContainer
-                        role='button'
-                        tabIndex={0}
-                        style={{ visibility: hasChevron ? 'initial' : 'hidden' }}
-                        onClick={handleChevronClick}
-                        onKeyPress={handleChevronClick}
-                    >
-                        <MotionChevron
-                            // Added style to work around a bug https://github.com/framer/motion/issues/255#issuecomment-628397719
-                            style={{ originX: '50%', originY: '50%', ['--chevron-color' as any]: '' }}
-                            width='10px'
-                            initial={{ rotate: 90 }}
-                            animate={willShow ? { rotate: 180 } : { rotate: 90 }}
-                        />
-                    </ChevronContainer>
-
-                    <span>{name}</span>
-                </div>
-                {withActionButton && (
-                    <ActionContainer
-                        className='__kreme-folder-action-container'
-                        as='button'
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            if (onActionClick) {
-                                onActionClick(e, id);
-                            }
-                        }}
-                    >
-                        <HiDotsHorizontal size='1em' style={{ color: 'var(--chevron-color)' }} />
-                    </ActionContainer>
-                )}
-            </div>
-            <AnimatePresence>
-                <Children
-                    initial='hidden'
-                    animate={willShow ? 'shown' : 'hidden'}
-                    variants={variants}
-                    exit='hidden'
-                    className='children'
+        return (
+            <StyledFolder ref={ref} depth={depth} spaceLeft={spaceLeft} style={style} key={id}>
+                <ItemLabel
+                    depth={depth}
+                    draggable={draggable}
+                    index={index || -1}
+                    itemId={id}
+                    role='button'
+                    tabIndex={0}
+                    className='__kreme-folder-label'
+                    onClick={handleLabelClick}
+                    onKeyPress={handleLabelClick}
                 >
-                    {children}
-                </Children>
-            </AnimatePresence>
-        </StyledFolder>
-    );
-};
+                    <div className='__kreme-folder-label-name'>
+                        <ChevronContainer
+                            role='button'
+                            tabIndex={0}
+                            style={{ visibility: hasChevron ? 'initial' : 'hidden' }}
+                            onClick={handleChevronClick}
+                            onKeyPress={handleChevronClick}
+                        >
+                            <MotionChevron
+                                // Added style to work around a bug https://github.com/framer/motion/issues/255#issuecomment-628397719
+                                style={{ originX: '50%', originY: '50%', ['--chevron-color' as any]: '' }}
+                                width='10px'
+                                initial={{ rotate: 90 }}
+                                animate={willShow ? { rotate: 180 } : { rotate: 90 }}
+                            />
+                        </ChevronContainer>
+                        <span>{name}</span>
+                    </div>
+                    {withActionButton && (
+                        <ActionContainer
+                            className='__kreme-folder-action-container'
+                            as='button'
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (onActionClick) {
+                                    onActionClick(e, id);
+                                }
+                            }}
+                        >
+                            <HiDotsHorizontal size='1em' style={{ color: 'var(--chevron-color)' }} />
+                        </ActionContainer>
+                    )}
+                </ItemLabel>
+                <AnimatePresence>
+                    {willShow && (
+                        <Children
+                            initial='hidden'
+                            animate={willShow ? 'shown' : 'hidden'}
+                            variants={variants}
+                            exit='hidden'
+                            className='children'
+                        >
+                            {children}
+                        </Children>
+                    )}
+                </AnimatePresence>
+            </StyledFolder>
+        );
+    },
+);
+
 export default Folder;

@@ -29,7 +29,7 @@ const structure: TreeDataType[] = [
                 name: 'Components',
                 children: [
                     { type: 'folder', name: 'HEYO', id: 10 },
-                    { type: 'file', name: 'BRUH', id: 90 },
+                    { type: 'folder', name: 'BRUH', id: 90 },
                 ],
             },
             {
@@ -38,9 +38,19 @@ const structure: TreeDataType[] = [
                 id: 1,
             },
             {
-                type: 'file',
+                type: 'folder',
                 name: 'WHHW',
                 id: 5,
+            },
+            {
+                type: 'folder',
+                name: 'ajskd',
+                id: 23,
+            },
+            {
+                type: 'folder',
+                name: 'affa',
+                id: 29,
             },
         ],
     },
@@ -56,4 +66,9 @@ NoDropOnEmpty.args = {
     noDropOnEmpty: true,
 };
 
+export const WithDrag: Story<TreeProps> = Template.bind({});
+WithDrag.args = {
+    data: structure,
+    draggable: true,
+};
 export const IndividualFolder = () => <Tree.Folder id='1' name='Test' />;
