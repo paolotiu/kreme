@@ -33,6 +33,7 @@ export interface TreeProps {
     // DnD Props
     onFolderDrop?: OnDropFunc;
     hoverColor?: string;
+    hoverBarColor?: string;
 }
 
 const Tree = ({
@@ -48,6 +49,7 @@ const Tree = ({
     parentId = -1,
     path = '|',
     hoverColor,
+    hoverBarColor,
 }: TreeProps) => {
     const { moveItem } = useContext(TreeContext);
 
@@ -57,6 +59,7 @@ const Tree = ({
                 if (item.type === 'folder') {
                     return draggable ? (
                         <FolderWithDrag
+                            hoverBarColor={hoverBarColor}
                             hoverColor={hoverColor}
                             isOpen={item.isOpen}
                             path={path}
@@ -85,6 +88,8 @@ const Tree = ({
                                 onFolderClick={onFolderClick}
                                 draggable={draggable}
                                 spaceLeft={spaceLeft}
+                                hoverBarColor={hoverBarColor}
+                                hoverColor={hoverColor}
                             />
                             {!!item.children?.length && <div style={{ width: '100%', height: '4px' }} />}
                         </FolderWithDrag>

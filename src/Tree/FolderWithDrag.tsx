@@ -18,7 +18,7 @@ function getHoverState(ref: React.RefObject<HTMLDivElement>, monitor: DropTarget
     const clientY = (clientOffset as XYCoord).y - boundingRect.top;
 
     const topThreshold = boundingRect.height * 0.33;
-    const bottomThreshold = boundingRect.height * 0.5;
+    const bottomThreshold = boundingRect.height * 0.6;
 
     if (clientY < topThreshold) {
         return 'top';
@@ -37,12 +37,13 @@ const Wrapper = styled.div<{ hovering?: boolean; hoverColor?: string }>`
     background-color: ${({ hovering, hoverColor }) => (hovering ? hoverColor || '#00000040' : 'initial')};
 `;
 
-const HoverBar = styled.div<{ left: string }>`
+const HoverBar = styled.div<{ left: string; spaceLeft?: string; barColor?: string; depth: number }>`
     position: absolute;
     width: 100%;
     height: 3px;
-    background-color: #9e5ceb40;
-    left: ${(props) => props.left};
+    --calculated-space-left: ${({ depth, spaceLeft }) => `calc(${depth} * ${spaceLeft})`};
+    background-color: ${(props) => props.barColor || '#9e5ceb40'};
+    left: ${(props) => `calc(${props.left} + var(--calculated-space-left) )`};
     overflow: hidden;
     pointer-events: none;
 `;
@@ -54,6 +55,7 @@ interface TreeFolderWithDragProps extends TreeFolderProps {
     moveItem: MoveItemFunc;
     path: string;
     hoverColor?: string;
+    hoverBarColor?: string;
 }
 
 export const FolderWithDrag = ({
@@ -62,6 +64,7 @@ export const FolderWithDrag = ({
     hoverColor,
     moveItem,
     path,
+    hoverBarColor,
     ...props
 }: TreeFolderWithDragProps) => {
     const ref = useRef<HTMLDivElement>(null);
@@ -204,7 +207,17 @@ export const FolderWithDrag = ({
     );
 
     drag(drop(ref));
-
+    const MemoizedHoverBar = useMemo(
+        () => (
+            <HoverBar
+                left={hoverBarOffsetRef.current}
+                spaceLeft={props.spaceLeft}
+                barColor={hoverBarColor}
+                depth={props.depth}
+            />
+        ),
+        [hoverBarColor, props.depth, props.spaceLeft],
+    );
     return (
         <Wrapper
             hoverColor={hoverColor}
@@ -212,15 +225,15 @@ export const FolderWithDrag = ({
                 isOver &&
                 hoverState !== 'none' &&
                 !(props.index === 0 && hoverState === 'top') &&
-                hoverState === 'middle'
+                (hoverState === 'middle' || hoverState === 'top')
             }
             id={`__kreme-draggable-wrapper-${props.id}`}
             onMouseLeave={() => setHoverState('none')}
         >
-            {isOver && props.index === 0 && hoverState === 'top' && <HoverBar left={hoverBarOffsetRef.current} />}
+            {isOver && props.index === 0 && hoverState === 'top' && MemoizedHoverBar}
             <Folder {...props} ref={ref} />
 
-            {isOver && hoverState === 'bottom' && <HoverBar left={hoverBarOffsetRef.current} />}
+            {isOver && hoverState === 'bottom' && MemoizedHoverBar}
         </Wrapper>
     );
 };
