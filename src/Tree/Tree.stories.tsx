@@ -1,5 +1,6 @@
 import React from 'react';
 import { Meta, Story } from '@storybook/react';
+import { action } from '@storybook/addon-actions';
 import Tree, { TreeProps } from './Tree';
 import { TreeDataType } from './types';
 
@@ -71,5 +72,7 @@ WithDrag.args = {
     data: structure,
     draggable: true,
     noDropOnEmpty: false,
+
+    onFolderDrop: action('onFolderDrop'),
 };
 export const IndividualFolder = () => <Tree.Folder id='1' name='Test' />;

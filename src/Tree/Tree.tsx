@@ -4,7 +4,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import Folder from './Folder';
 import File from './File';
-import { TreeDataType, TreeItemClickHandler } from './types';
+import { OnDropFunc, TreeDataType, TreeItemClickHandler } from './types';
 import TreeContext, { TreeContextProvider } from './TreeContext';
 import FolderWithDrag from './FolderWithDrag';
 
@@ -29,6 +29,9 @@ export interface TreeProps {
     draggable?: boolean;
     parentId?: string | number;
     path?: string;
+
+    // DnD Props
+    onFolderDrop?: OnDropFunc;
 }
 
 const Tree = ({
@@ -79,7 +82,7 @@ const Tree = ({
                                 onFolderClick={onFolderClick}
                                 draggable={draggable}
                             />
-                            {item.children?.length && <div style={{ width: '100%', height: '4px' }} />}
+                            {!!item.children?.length && <div style={{ width: '100%', height: '4px' }} />}
                         </FolderWithDrag>
                     ) : (
                         <Folder
@@ -132,7 +135,7 @@ const TreeWrapper = ({ ...props }: TreeProps) => {
 
 const TreeWithContextWrapper = ({ data, ...props }: TreeProps) => {
     return (
-        <TreeContextProvider initialData={data || []}>
+        <TreeContextProvider initialData={data || []} onDrop={props.onFolderDrop}>
             <TreeWrapper data={data} {...props} />
         </TreeContextProvider>
     );

@@ -137,6 +137,7 @@ const Folder = React.forwardRef<HTMLDivElement, TreeFolderProps | DraggableFolde
             // Always have the updated state
             setWillShow(isOpen);
         }, [isOpen]);
+
         const childrenHasData = useMemo(() => {
             let hasData = false;
             React.Children.forEach(children, (child, i) => {

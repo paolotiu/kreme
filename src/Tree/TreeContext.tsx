@@ -2,7 +2,13 @@
 import React, { useState } from 'react';
 import cloneDeep from 'lodash.clonedeep';
 import { arrayMove } from '../utils/arrayMove';
-import { MoveItemFunc, MoveItemFuncBaseParams, MoveItemFuncChangingDepthParams, TreeDataType } from './types';
+import {
+    MoveItemFunc,
+    MoveItemFuncBaseParams,
+    MoveItemFuncChangingDepthParams,
+    OnDropFunc,
+    TreeDataType,
+} from './types';
 
 const isChangingDepthParams = (
     params: MoveItemFuncBaseParams | MoveItemFuncChangingDepthParams,
@@ -20,9 +26,10 @@ export const TreeContext = React.createContext<TreeContextValue>({} as TreeConte
 interface Props {
     children: React.ReactNode;
     initialData: TreeDataType[];
+    onDrop?: OnDropFunc;
 }
 
-export const TreeContextProvider = ({ children, initialData }: Props) => {
+export const TreeContextProvider = ({ children, initialData, onDrop }: Props) => {
     const [data, setData] = useState(initialData);
 
     const moveItem: MoveItemFunc = (params) => {
@@ -99,6 +106,9 @@ export const TreeContextProvider = ({ children, initialData }: Props) => {
 
             return updatedData;
         });
+        if (onDrop) {
+            onDrop({ sourceId: itemToInsert.id, sourceIndex: itemToInsert.index, targetId, targetIndex });
+        }
     };
 
     return <TreeContext.Provider value={{ data, moveItem }}>{children}</TreeContext.Provider>;
