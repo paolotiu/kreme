@@ -43,6 +43,7 @@ const Wrapper = styled.div<{ hoverState: HoverState }>`
     background-color: ${({ hoverState }) => (hoverState === 'top' || hoverState === 'middle' ? 'grey' : 'initial')};
     ::after {
         position: absolute;
+        pointer-events: none;
         bottom: 0;
         width: 100%;
         content: '';

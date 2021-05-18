@@ -1,7 +1,7 @@
 import styled from '@emotion/styled';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
-import React, { CSSProperties, useMemo, useState } from 'react';
+import React, { CSSProperties, useEffect, useMemo, useState } from 'react';
 import Chevron from '../assets/filledChevron.svg';
 import { svgToMotion } from '../utils/svgToMotion';
 import { TreeItemClickHandler } from './types';
@@ -47,8 +47,7 @@ const StyledFolder = styled.div<{ depth: number; spaceLeft?: string }>`
     cursor: pointer;
     .children {
         .__kreme-folder-label {
-            --initial-padding-left: ${(props) => `calc(var(--padding-left) * ${props.depth + 1} )`};
-            padding-left: ${(props) => `calc(var(--initial-padding-left) + ${props.spaceLeft || '0px'})`};
+            padding-left: ${(props) => `calc(var(--label-padding-left) + ${props.spaceLeft || '0px'})`};
         }
     }
     .__kreme-folder-label {
@@ -77,7 +76,7 @@ const StyledFolder = styled.div<{ depth: number; spaceLeft?: string }>`
 
 export interface TreeFolderProps {
     name: string;
-    isShown?: boolean;
+    isOpen?: boolean;
     id: string | number;
     noDropOnEmpty?: boolean;
     onLabelClick?: TreeItemClickHandler;
@@ -116,7 +115,7 @@ const Folder = React.forwardRef<HTMLDivElement, TreeFolderProps | DraggableFolde
         {
             name,
             children,
-            isShown = false,
+            isOpen = false,
             noDropOnEmpty = false,
             onLabelClick,
             id,
@@ -132,11 +131,16 @@ const Folder = React.forwardRef<HTMLDivElement, TreeFolderProps | DraggableFolde
         },
         ref,
     ) => {
-        const [willShow, setWillShow] = useState(isShown);
+        const [willShow, setWillShow] = useState(isOpen);
+
+        useEffect(() => {
+            // Always have the updated state
+            setWillShow(isOpen);
+        }, [isOpen]);
         const childrenHasData = useMemo(() => {
             let hasData = false;
-            React.Children.forEach(children, (child) => {
-                if (React.isValidElement(child)) {
+            React.Children.forEach(children, (child, i) => {
+                if (React.isValidElement(child) && i === 0) {
                     hasData = !!child.props.data?.length;
                 }
             });

@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { DropTargetMonitor, useDrag, useDrop, XYCoord } from 'react-dnd';
 import Folder, { TreeFolderProps } from './Folder';
 import { TreeDataType, MoveItemFunc, HoverState, Item } from './types';
@@ -18,7 +18,7 @@ function getHoverState(ref: React.RefObject<HTMLDivElement>, monitor: DropTarget
     const clientY = (clientOffset as XYCoord).y - boundingRect.top;
 
     const topThreshold = boundingRect.height * 0.33;
-    const bottomThreshold = boundingRect.height * 0.66;
+    const bottomThreshold = boundingRect.height * 0.5;
 
     if (clientY < topThreshold) {
         return 'top';
@@ -32,7 +32,9 @@ function getHoverState(ref: React.RefObject<HTMLDivElement>, monitor: DropTarget
 }
 const Wrapper = styled.div<{ hoverState: HoverState }>`
     position: relative;
-    background-color: ${({ hoverState }) => (hoverState === 'top' || hoverState === 'middle' ? 'grey' : 'initial')};
+    transition: all 0.3s ease-in;
+    background-color: ${({ hoverState }) =>
+        hoverState === 'top' || hoverState === 'middle' ? '#00000018' : 'initial'};
 `;
 interface TreeFolderWithDragProps extends TreeFolderProps {
     index: number;
@@ -45,6 +47,8 @@ interface TreeFolderWithDragProps extends TreeFolderProps {
 
 export const FolderWithDrag = ({ data = [], parentId, moveItem, path, ...props }: TreeFolderWithDragProps) => {
     const ref = useRef<HTMLDivElement>(null);
+
+    const hoverBarOffsetRef = useRef('0px');
 
     const [hoverState, setHoverState] = useState<HoverState>('none');
     const [, drag] = useDrag(
@@ -66,7 +70,18 @@ export const FolderWithDrag = ({ data = [], parentId, moveItem, path, ...props }
         [props.id, props.index, props.depth, props.name, data, parentId],
     );
 
+    // Path array to compare to in the hover state
     const pathArr = useMemo(() => path.split('-'), [path]);
+
+    useEffect(() => {
+        if (ref.current) {
+            const folderLabel = ref.current.firstElementChild;
+            if (folderLabel) {
+                const { paddingLeft } = window.getComputedStyle(folderLabel);
+                hoverBarOffsetRef.current = paddingLeft;
+            }
+        }
+    }, []);
 
     const [{ isOver }, drop] = useDrop(
         () => ({
@@ -75,6 +90,9 @@ export const FolderWithDrag = ({ data = [], parentId, moveItem, path, ...props }
                 return {
                     isOver: monitor.isOver({ shallow: true }),
                 };
+            },
+            options: {
+                dropEffect: '',
             },
             drop: (item: Item, monitor) => {
                 setHoverState('none');
@@ -149,7 +167,7 @@ export const FolderWithDrag = ({ data = [], parentId, moveItem, path, ...props }
     drag(drop(ref));
 
     return (
-        <Wrapper hoverState={isOver ? hoverState : 'none'}>
+        <Wrapper hoverState={isOver ? hoverState : 'none'} id={`__kreme-draggable-wrapper-${props.id}`}>
             <Folder {...props} ref={ref} />
             {isOver && hoverState === 'bottom' && (
                 <div
@@ -159,6 +177,8 @@ export const FolderWithDrag = ({ data = [], parentId, moveItem, path, ...props }
                         height: '3px',
                         backgroundColor: 'blue',
                         overflow: 'hidden',
+                        pointerEvents: 'none',
+                        left: hoverBarOffsetRef.current,
                     }}
                 />
             )}

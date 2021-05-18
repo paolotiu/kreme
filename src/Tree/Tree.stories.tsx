@@ -70,5 +70,6 @@ export const WithDrag: Story<TreeProps> = Template.bind({});
 WithDrag.args = {
     data: structure,
     draggable: true,
+    noDropOnEmpty: false,
 };
 export const IndividualFolder = () => <Tree.Folder id='1' name='Test' />;

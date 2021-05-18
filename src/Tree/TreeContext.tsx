@@ -57,6 +57,7 @@ export const TreeContextProvider = ({ children, initialData }: Props) => {
             // Base case
             if (!item.children?.length) {
                 if (item.id === targetId) {
+                    item.isOpen = true;
                     item.children = [itemToInsert];
                 }
                 return item;
@@ -72,6 +73,7 @@ export const TreeContextProvider = ({ children, initialData }: Props) => {
                 } else {
                     item.children = [itemToInsert];
                 }
+                item.isOpen = true;
                 return item;
             }
 
@@ -82,6 +84,7 @@ export const TreeContextProvider = ({ children, initialData }: Props) => {
 
             return item;
         };
+
         setData((prevData) => {
             let dataCopy = cloneDeep(prevData);
             if (targetId === -1) {
@@ -93,6 +96,8 @@ export const TreeContextProvider = ({ children, initialData }: Props) => {
             }
 
             const updatedData = dataCopy.map(updateItem);
+
+            console.log(updatedData);
             return updatedData;
         });
     };

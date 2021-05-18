@@ -1,5 +1,5 @@
-import styled from '@emotion/styled';
 import React, { useContext } from 'react';
+import styled from '@emotion/styled';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import Folder from './Folder';
@@ -8,10 +8,11 @@ import { TreeDataType, TreeItemClickHandler } from './types';
 import TreeContext, { TreeContextProvider } from './TreeContext';
 import FolderWithDrag from './FolderWithDrag';
 
-const StyledTree = styled.div`
+const StyledTree = styled.div<{ depth: number }>`
     --margin-left: 5px;
     --chevron-width: 20px;
     --item-padding-left: 20px;
+    --label-padding-left: ${(props) => `calc(var(--padding-left) * ${props.depth} )`};
     width: 100%;
 `;
 
@@ -46,11 +47,12 @@ const Tree = ({
     const { moveItem } = useContext(TreeContext);
 
     return (
-        <StyledTree data-testid='tree' className={className}>
+        <StyledTree data-testid='tree' depth={depth} className={className}>
             {data?.map((item, index) => {
                 if (item.type === 'folder') {
                     return draggable ? (
                         <FolderWithDrag
+                            isOpen={item.isOpen}
                             path={path}
                             draggable={false}
                             moveItem={moveItem}

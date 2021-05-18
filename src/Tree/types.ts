@@ -3,6 +3,7 @@ export interface TreeDataType {
     name: string;
     children?: TreeDataType[];
     id: string | number;
+    isOpen?: boolean;
 }
 
 export type TreeItemClickHandler = (id: string | number) => void;
