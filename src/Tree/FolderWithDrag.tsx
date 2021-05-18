@@ -36,6 +36,16 @@ const Wrapper = styled.div<{ hoverState: HoverState }>`
     background-color: ${({ hoverState }) =>
         hoverState === 'top' || hoverState === 'middle' ? '#00000018' : 'initial'};
 `;
+
+const HoverBar = styled.div<{ left: string }>`
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    background-color: #9e5ceb;
+    left: ${(props) => props.left};
+    overflow: hidden;
+    pointer-events: none;
+`;
 interface TreeFolderWithDragProps extends TreeFolderProps {
     index: number;
     depth: number;
@@ -167,21 +177,14 @@ export const FolderWithDrag = ({ data = [], parentId, moveItem, path, ...props }
     drag(drop(ref));
 
     return (
-        <Wrapper hoverState={isOver ? hoverState : 'none'} id={`__kreme-draggable-wrapper-${props.id}`}>
+        <Wrapper
+            hoverState={isOver ? hoverState : 'none'}
+            id={`__kreme-draggable-wrapper-${props.id}`}
+            onMouseLeave={() => setHoverState('none')}
+        >
             <Folder {...props} ref={ref} />
-            {isOver && hoverState === 'bottom' && (
-                <div
-                    style={{
-                        position: 'absolute',
-                        width: '100%',
-                        height: '3px',
-                        backgroundColor: 'blue',
-                        overflow: 'hidden',
-                        pointerEvents: 'none',
-                        left: hoverBarOffsetRef.current,
-                    }}
-                />
-            )}
+
+            {isOver && hoverState === 'bottom' && <HoverBar left={hoverBarOffsetRef.current} />}
         </Wrapper>
     );
 };
