@@ -97,7 +97,6 @@ export const TreeContextProvider = ({ children, initialData }: Props) => {
 
             const updatedData = dataCopy.map(updateItem);
 
-            console.log(updatedData);
             return updatedData;
         });
     };
