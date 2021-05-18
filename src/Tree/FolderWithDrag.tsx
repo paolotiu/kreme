@@ -30,11 +30,10 @@ function getHoverState(ref: React.RefObject<HTMLDivElement>, monitor: DropTarget
 
     return 'middle';
 }
-const Wrapper = styled.div<{ hoverState: HoverState }>`
+const Wrapper = styled.div<{ hovering?: boolean }>`
     position: relative;
     transition: all 0.3s ease-in;
-    background-color: ${({ hoverState }) =>
-        hoverState === 'top' || hoverState === 'middle' ? '#00000018' : 'initial'};
+    background-color: ${({ hovering }) => (hovering ? '#00000018' : 'initial')};
 `;
 
 const HoverBar = styled.div<{ left: string }>`
@@ -114,7 +113,7 @@ export const FolderWithDrag = ({ data = [], parentId, moveItem, path, ...props }
                     const targetId = props.id;
                     const isHorizontal = props.depth === item.depth && parentId === item.parentId;
                     const isChangingDepth = item.depth !== props.depth;
-                    const dropPoistion = getHoverState(ref, monitor);
+                    const dropPosition = getHoverState(ref, monitor);
 
                     // Prevent moving to child
                     if (pathArr.includes(String(item.id))) {
@@ -126,23 +125,44 @@ export const FolderWithDrag = ({ data = [], parentId, moveItem, path, ...props }
                     }
 
                     // Prevent moving to same parent
-                    if (props.id === item.parentId && (dropPoistion === 'top' || dropPoistion === 'middle')) {
+                    if (
+                        props.id === item.parentId &&
+                        ((dropPosition === 'top' && props.index !== 0) || dropPosition === 'middle')
+                    ) {
                         return;
                     }
 
                     // Prevent moving to the same place
-                    if (props.index === 0 && dropPoistion === 'bottom' && item.index === 1 && !isChangingDepth) {
+                    if (props.index === 0 && dropPosition === 'bottom' && item.index === 1 && !isChangingDepth) {
+                        return;
+                    }
+
+                    // First child bottom to top
+                    if (props.index === 0 && dropPosition === 'top') {
+                        if (isChangingDepth) {
+                            moveItem({
+                                item,
+                                targetId,
+                                targetIndex,
+                                isHorizontal,
+                                isChangingDepth,
+                                targetParentId: parentId,
+                            });
+                            return;
+                        }
+
+                        moveItem({ item, targetId, targetIndex, isHorizontal });
                         return;
                     }
 
                     // Changing depth
-                    if (isChangingDepth && dropPoistion === 'bottom') {
+                    if (isChangingDepth && dropPosition === 'bottom') {
                         moveItem({ item, targetId, targetIndex, isChangingDepth: true, targetParentId: parentId });
                         return;
                     }
 
                     // Insert to folder
-                    if (dropPoistion === 'middle' || dropPoistion === 'top') {
+                    if (dropPosition === 'middle' || dropPosition === 'top') {
                         moveItem({ item, targetId, targetIndex, isHorizontal: false });
                         return;
                     }
@@ -178,10 +198,11 @@ export const FolderWithDrag = ({ data = [], parentId, moveItem, path, ...props }
 
     return (
         <Wrapper
-            hoverState={isOver ? hoverState : 'none'}
+            hovering={isOver && hoverState !== 'none' && !(props.index === 0 && hoverState === 'top')}
             id={`__kreme-draggable-wrapper-${props.id}`}
             onMouseLeave={() => setHoverState('none')}
         >
+            {isOver && props.index === 0 && hoverState === 'top' && <HoverBar left={hoverBarOffsetRef.current} />}
             <Folder {...props} ref={ref} />
 
             {isOver && hoverState === 'bottom' && <HoverBar left={hoverBarOffsetRef.current} />}
