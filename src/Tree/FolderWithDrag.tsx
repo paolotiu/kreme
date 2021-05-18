@@ -30,10 +30,11 @@ function getHoverState(ref: React.RefObject<HTMLDivElement>, monitor: DropTarget
 
     return 'middle';
 }
-const Wrapper = styled.div<{ hovering?: boolean }>`
+
+const Wrapper = styled.div<{ hovering?: boolean; hoverColor?: string }>`
     position: relative;
     transition: all 0.3s ease-in;
-    background-color: ${({ hovering }) => (hovering ? '#00000018' : 'initial')};
+    background-color: ${({ hovering, hoverColor }) => (hovering ? hoverColor || '#00000040' : 'initial')};
 `;
 
 const HoverBar = styled.div<{ left: string }>`
@@ -52,9 +53,17 @@ interface TreeFolderWithDragProps extends TreeFolderProps {
     parentId: string | number;
     moveItem: MoveItemFunc;
     path: string;
+    hoverColor?: string;
 }
 
-export const FolderWithDrag = ({ data = [], parentId, moveItem, path, ...props }: TreeFolderWithDragProps) => {
+export const FolderWithDrag = ({
+    data = [],
+    parentId,
+    hoverColor,
+    moveItem,
+    path,
+    ...props
+}: TreeFolderWithDragProps) => {
     const ref = useRef<HTMLDivElement>(null);
 
     const hoverBarOffsetRef = useRef('0px');
@@ -198,7 +207,13 @@ export const FolderWithDrag = ({ data = [], parentId, moveItem, path, ...props }
 
     return (
         <Wrapper
-            hovering={isOver && hoverState !== 'none' && !(props.index === 0 && hoverState === 'top')}
+            hoverColor={hoverColor}
+            hovering={
+                isOver &&
+                hoverState !== 'none' &&
+                !(props.index === 0 && hoverState === 'top') &&
+                hoverState === 'middle'
+            }
             id={`__kreme-draggable-wrapper-${props.id}`}
             onMouseLeave={() => setHoverState('none')}
         >

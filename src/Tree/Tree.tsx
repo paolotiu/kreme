@@ -32,6 +32,7 @@ export interface TreeProps {
 
     // DnD Props
     onFolderDrop?: OnDropFunc;
+    hoverColor?: string;
 }
 
 const Tree = ({
@@ -46,6 +47,7 @@ const Tree = ({
     draggable,
     parentId = -1,
     path = '|',
+    hoverColor,
 }: TreeProps) => {
     const { moveItem } = useContext(TreeContext);
 
@@ -55,6 +57,7 @@ const Tree = ({
                 if (item.type === 'folder') {
                     return draggable ? (
                         <FolderWithDrag
+                            hoverColor={hoverColor}
                             isOpen={item.isOpen}
                             path={path}
                             draggable={false}
@@ -81,6 +84,7 @@ const Tree = ({
                                 noDropOnEmpty={noDropOnEmpty}
                                 onFolderClick={onFolderClick}
                                 draggable={draggable}
+                                spaceLeft={spaceLeft}
                             />
                             {!!item.children?.length && <div style={{ width: '100%', height: '4px' }} />}
                         </FolderWithDrag>
@@ -97,10 +101,14 @@ const Tree = ({
                             calledRecursively
                         >
                             <Tree
+                                path={path + '-' + item.id}
+                                parentId={item.id}
+                                key={item.id}
                                 data={item.children}
                                 depth={depth + 1}
                                 noDropOnEmpty={noDropOnEmpty}
                                 onFolderClick={onFolderClick}
+                                draggable={draggable}
                             />
                         </Folder>
                     );

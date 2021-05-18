@@ -46,7 +46,7 @@ const StyledFolder = styled.div<{ depth: number; spaceLeft?: string }>`
 
     cursor: pointer;
     .children {
-        .__kreme-folder-label {
+        & .__kreme-folder-label {
             padding-left: ${(props) => `calc(var(--label-padding-left) + ${props.spaceLeft || '0px'})`};
         }
     }
