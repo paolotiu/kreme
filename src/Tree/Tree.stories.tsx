@@ -75,4 +75,10 @@ WithDrag.args = {
 
     onFolderDrop: action('onFolderDrop'),
 };
+
+export const WithSpaceLeft: Story<TreeProps> = Template.bind({});
+WithSpaceLeft.args = {
+    ...WithDrag.args,
+    spaceLeft: '1rem',
+};
 export const IndividualFolder = () => <Tree.Folder id='1' name='Test' />;
