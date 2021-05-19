@@ -75,6 +75,7 @@ export const FolderWithDrag = ({
     const [, drag] = useDrag(
         () => ({
             type: 'Folder',
+
             item: () => ({
                 index: props.index,
                 depth: props.depth,
@@ -82,10 +83,8 @@ export const FolderWithDrag = ({
                 name: props.name,
                 type: 'folder',
                 children: data,
+                isOpen: props.isOpen,
                 parentId,
-            }),
-            collect: (monitor) => ({
-                test: monitor.getDropResult(),
             }),
         }),
         [props.id, props.index, props.depth, props.name, data, parentId],
@@ -111,9 +110,6 @@ export const FolderWithDrag = ({
                 return {
                     isOver: monitor.isOver({ shallow: true }),
                 };
-            },
-            options: {
-                dropEffect: '',
             },
             drop: (item: Item, monitor) => {
                 setHoverState('none');

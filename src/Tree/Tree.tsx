@@ -1,7 +1,9 @@
 import React, { useContext } from 'react';
 import styled from '@emotion/styled';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import { DndProvider, usePreview } from 'react-dnd-multi-backend';
+
+import HTML5toTouch from 'react-dnd-multi-backend/dist/esm/HTML5toTouch'; // or any other pipeline
+
 import Folder from './Folder';
 import File from './File';
 import { OnDropFunc, TreeDataType, TreeItemClickHandler } from './types';
@@ -86,6 +88,7 @@ const Tree = ({
                                 depth={depth + 1}
                                 noDropOnEmpty={noDropOnEmpty}
                                 onFolderClick={onFolderClick}
+                                onFolderActionClick={onFolderActionClick}
                                 draggable={draggable}
                                 spaceLeft={spaceLeft}
                                 hoverBarColor={hoverBarColor}
@@ -137,11 +140,25 @@ const Tree = ({
     );
 };
 
+const MyPreview = () => {
+    const { display, item, style } = usePreview();
+    if (!display) {
+        return null;
+    }
+    return (
+        <Folder id={item.id} name={item.name} isOpen style={{ ...style, opacity: 0.3 }}>
+            <Tree data={item.children} />
+        </Folder>
+    );
+    // render your preview
+};
+
 const TreeWrapper = ({ ...props }: TreeProps) => {
     const { data } = useContext(TreeContext);
     return (
-        <DndProvider backend={HTML5Backend}>
+        <DndProvider options={HTML5toTouch}>
             <Tree {...props} data={data} />
+            <MyPreview />
         </DndProvider>
     );
 };
