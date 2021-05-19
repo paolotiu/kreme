@@ -1,11 +1,12 @@
 import styled from '@emotion/styled';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
-import React, { CSSProperties, useEffect, useMemo, useState } from 'react';
+import React, { CSSProperties, useContext, useMemo } from 'react';
 import Chevron from '../assets/filledChevron.svg';
 import { svgToMotion } from '../utils/svgToMotion';
 import { TreeItemClickHandler } from './types';
 import ItemLabel from './ItemLabel/ItemLabel';
+import TreeContext from './TreeContext';
 
 const MotionChevron = styled(svgToMotion(Chevron))`
     fill: var(--chevron-color);
@@ -131,12 +132,7 @@ const Folder = React.forwardRef<HTMLDivElement, TreeFolderProps | DraggableFolde
         },
         ref,
     ) => {
-        const [willShow, setWillShow] = useState(isOpen);
-
-        useEffect(() => {
-            // Always have the updated state
-            setWillShow(isOpen);
-        }, [isOpen]);
+        const { toggleItemOpen } = useContext(TreeContext);
 
         const childrenHasData = useMemo(() => {
             let hasData = false;
@@ -152,7 +148,7 @@ const Folder = React.forwardRef<HTMLDivElement, TreeFolderProps | DraggableFolde
         const handleChevronClick = (e: React.MouseEvent | React.KeyboardEvent) => {
             e.preventDefault();
             e.stopPropagation();
-            setWillShow(!willShow);
+            toggleItemOpen(id);
             if (onFolderOpen) {
                 onFolderOpen();
             }
@@ -191,8 +187,8 @@ const Folder = React.forwardRef<HTMLDivElement, TreeFolderProps | DraggableFolde
                                 // Added style to work around a bug https://github.com/framer/motion/issues/255#issuecomment-628397719
                                 style={{ originX: '50%', originY: '50%', ['--chevron-color' as any]: '' }}
                                 width='10px'
-                                initial={{ rotate: 90 }}
-                                animate={willShow ? { rotate: 180 } : { rotate: 90 }}
+                                initial={false}
+                                animate={isOpen ? { rotate: 180 } : { rotate: 90 }}
                             />
                         </ChevronContainer>
                         <span>{name}</span>
@@ -212,11 +208,11 @@ const Folder = React.forwardRef<HTMLDivElement, TreeFolderProps | DraggableFolde
                         </ActionContainer>
                     )}
                 </ItemLabel>
-                <AnimatePresence>
-                    {willShow && (
+                <AnimatePresence initial={false}>
+                    {isOpen && (
                         <Children
                             initial='hidden'
-                            animate={willShow ? 'shown' : 'hidden'}
+                            animate={isOpen ? 'shown' : 'hidden'}
                             variants={variants}
                             exit='hidden'
                             className='children'

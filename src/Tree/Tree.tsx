@@ -146,8 +146,14 @@ const MyPreview = () => {
         return null;
     }
     return (
-        <Folder id={item.id} name={item.name} isOpen style={{ ...style, opacity: 0.3 }}>
-            <Tree data={item.children} />
+        <Folder
+            id={item.id}
+            name={item.name}
+            isOpen={item.isOpen}
+            depth={item.depth}
+            style={{ ...style, opacity: 0.3 }}
+        >
+            <Tree data={item.children} depth={item.depth + 1} draggable />
         </Folder>
     );
     // render your preview

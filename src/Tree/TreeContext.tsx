@@ -1,5 +1,5 @@
 /* eslint-disable no-param-reassign */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import cloneDeep from 'lodash.clonedeep';
 import { arrayMove } from '../utils/arrayMove';
 import {
@@ -7,6 +7,7 @@ import {
     MoveItemFuncBaseParams,
     MoveItemFuncChangingDepthParams,
     OnDropFunc,
+    ToggleItemOpenFunc,
     TreeDataType,
 } from './types';
 
@@ -20,18 +21,46 @@ interface TreeContextValue {
     data: TreeDataType[];
     any?: any;
     moveItem: MoveItemFunc;
+    toggleItemOpen: ToggleItemOpenFunc;
 }
 export const TreeContext = React.createContext<TreeContextValue>({} as TreeContextValue);
 
-interface Props {
+interface TreeContextProps {
     children: React.ReactNode;
     initialData: TreeDataType[];
     onDrop?: OnDropFunc;
+    openOnDrop?: boolean;
 }
 
-export const TreeContextProvider = ({ children, initialData, onDrop }: Props) => {
+export const TreeContextProvider = ({ children, initialData, onDrop, openOnDrop = false }: TreeContextProps) => {
     const [data, setData] = useState(initialData);
 
+    useEffect(() => {
+        // Get updated data
+        setData(initialData);
+    }, [initialData]);
+
+    const toggleItemOpen: ToggleItemOpenFunc = (id) => {
+        const toggle = (item: TreeDataType) => {
+            // Base case
+            if (item.id === id) {
+                item.isOpen = !item.isOpen;
+                return item;
+            }
+
+            item.children?.map(toggle);
+            return item;
+        };
+
+        setData((prevData) => {
+            const dataCopy = cloneDeep(prevData);
+            return dataCopy.map(toggle);
+        });
+    };
+
+    const shouldOpenHandler = (item: TreeDataType) => {
+        item.isOpen = openOnDrop ? true : item.isOpen;
+    };
     const moveItem: MoveItemFunc = (params) => {
         const { item: itemToInsert, targetIndex, isHorizontal } = params;
         let { targetId } = params;
@@ -64,7 +93,7 @@ export const TreeContextProvider = ({ children, initialData, onDrop }: Props) =>
             // Base case
             if (!item.children?.length) {
                 if (item.id === targetId) {
-                    item.isOpen = true;
+                    shouldOpenHandler(item);
                     item.children = [itemToInsert];
                 }
                 return item;
@@ -80,7 +109,7 @@ export const TreeContextProvider = ({ children, initialData, onDrop }: Props) =>
                 } else {
                     item.children = [itemToInsert];
                 }
-                item.isOpen = true;
+                shouldOpenHandler(item);
                 return item;
             }
 
@@ -111,7 +140,7 @@ export const TreeContextProvider = ({ children, initialData, onDrop }: Props) =>
         }
     };
 
-    return <TreeContext.Provider value={{ data, moveItem }}>{children}</TreeContext.Provider>;
+    return <TreeContext.Provider value={{ data, moveItem, toggleItemOpen }}>{children}</TreeContext.Provider>;
 };
 
 export default TreeContext;

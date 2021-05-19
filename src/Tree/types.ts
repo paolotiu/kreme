@@ -1,4 +1,4 @@
-type TreeItemID = number | string;
+export type TreeItemID = number | string;
 export interface TreeDataType {
     type: 'folder' | 'file';
     name: string;
@@ -19,6 +19,7 @@ export interface Item extends TreeDataType {
 }
 
 export type MoveItemFunc = (data: MoveItemFuncBaseParams | MoveItemFuncChangingDepthParams) => void;
+export type ToggleItemOpenFunc = (id: TreeItemID) => void;
 
 export interface MoveItemFuncBaseParams {
     item: Item;
