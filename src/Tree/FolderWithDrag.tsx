@@ -41,7 +41,7 @@ const HoverBar = styled.div<{ left: string; spaceLeft?: string; barColor?: strin
     position: absolute;
     width: 100%;
     height: 3px;
-    --calculated-space-left: ${({ depth, spaceLeft }) => `calc(${depth} * ${spaceLeft})`};
+    --calculated-space-left: ${({ depth, spaceLeft }) => `calc(${depth} * ${spaceLeft || 'var(--item-padding-left)'})`};
     background-color: ${(props) => props.barColor || '#9e5ceb40'};
     left: ${(props) => `calc(${props.left} + var(--calculated-space-left) )`};
     overflow: hidden;
@@ -87,7 +87,7 @@ export const FolderWithDrag = ({
                 parentId,
             }),
         }),
-        [props.id, props.index, props.depth, props.name, data, parentId],
+        [props.id, props.index, props.depth, props.name, data, parentId, props.isOpen],
     );
 
     // Path array to compare to in the hover state
@@ -228,7 +228,6 @@ export const FolderWithDrag = ({
         >
             {isOver && props.index === 0 && hoverState === 'top' && MemoizedHoverBar}
             <Folder {...props} ref={ref} />
-
             {isOver && hoverState === 'bottom' && MemoizedHoverBar}
         </Wrapper>
     );
