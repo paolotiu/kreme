@@ -23,6 +23,7 @@ const structure: TreeDataType[] = [
         id: 2,
         type: 'folder',
         name: 'src',
+        isOpen: true,
         children: [
             {
                 id: 3,
@@ -33,11 +34,7 @@ const structure: TreeDataType[] = [
                     { type: 'folder', name: 'BRUH', id: 90 },
                 ],
             },
-            {
-                type: 'folder',
-                name: 'What',
-                id: 1,
-            },
+
             {
                 type: 'folder',
                 name: 'WHHW',
@@ -52,6 +49,18 @@ const structure: TreeDataType[] = [
                 type: 'folder',
                 name: 'affa',
                 id: 29,
+            },
+        ],
+    },
+    {
+        type: 'folder',
+        name: 'What',
+        id: 1,
+        children: [
+            {
+                type: 'folder',
+                name: 'HEY',
+                id: 13290,
             },
         ],
     },

@@ -47,6 +47,16 @@ const HoverBar = styled.div<{ left: string; spaceLeft?: string; barColor?: strin
     overflow: hidden;
     pointer-events: none;
 `;
+
+// Dynamic array as keys solution from
+// https://github.com/microsoft/TypeScript/issues/20965#issuecomment-370114910
+export interface DNDProps<T extends string, U = { [K in T]: (item: any, treeItem: TreeDataType) => void }> {
+    hoverColor?: string;
+    hoverBarColor?: string;
+    acceptedDropTypes?: readonly T[];
+    onDrop?: U;
+}
+
 interface TreeFolderWithDragProps extends TreeFolderProps {
     index: number;
     depth: number;
@@ -54,28 +64,26 @@ interface TreeFolderWithDragProps extends TreeFolderProps {
     parentId: string | number;
     moveItem: MoveItemFunc;
     path: string;
-    hoverColor?: string;
-    hoverBarColor?: string;
 }
 
-export const FolderWithDrag = ({
+export const FolderWithDrag = function FolderWithDrag<DropTypes extends string>({
     data = [],
     parentId,
     hoverColor,
     moveItem,
     path,
     hoverBarColor,
+    acceptedDropTypes,
+    onDrop,
     ...props
-}: TreeFolderWithDragProps) => {
+}: TreeFolderWithDragProps & DNDProps<DropTypes>) {
     const ref = useRef<HTMLDivElement>(null);
-
     const hoverBarOffsetRef = useRef('0px');
 
     const [hoverState, setHoverState] = useState<HoverState>('none');
     const [, drag] = useDrag(
         () => ({
             type: 'Folder',
-
             item: () => ({
                 index: props.index,
                 depth: props.depth,
@@ -103,26 +111,35 @@ export const FolderWithDrag = ({
         }
     }, []);
 
-    const [{ isOver }, drop] = useDrop(
+    const [{ isOver, isNotFolder }, drop] = useDrop(
         () => ({
-            accept: 'Folder',
+            accept: ['Folder'].concat(acceptedDropTypes || []),
             collect: (monitor) => {
                 return {
                     isOver: monitor.isOver({ shallow: true }),
+                    isNotFolder: monitor.getItemType() !== 'Folder',
                 };
             },
             drop: (item: Item, monitor) => {
                 setHoverState('none');
                 if (monitor.isOver({ shallow: true })) {
+                    const type = monitor.getItemType() as DropTypes;
+
+                    // User drop type
+                    if (onDrop && type && onDrop[type] && type !== 'Folder') {
+                        onDrop[type](item, { id: props.id, name: props.name, type: 'folder', isOpen: props.isOpen });
+                        return;
+                    }
+
                     const sourceIndex = item.index;
                     const sourceDepth = item.depth;
                     const targetIndex = props.index;
                     const targetDepth = props.depth;
                     const targetId = props.id;
                     const isHorizontal = props.depth === item.depth && parentId === item.parentId;
+                    const isChangingParent = parentId !== item.parentId;
                     const isChangingDepth = item.depth !== props.depth;
                     const dropPosition = getHoverState(ref, monitor);
-
                     // Prevent moving to child
                     if (pathArr.includes(String(item.id))) {
                         return;
@@ -153,19 +170,35 @@ export const FolderWithDrag = ({
                                 targetId,
                                 targetIndex,
                                 isHorizontal,
-                                isChangingDepth,
+                                isChangingDepth: true,
                                 targetParentId: parentId,
                             });
                             return;
                         }
-
+                        if (isChangingParent) {
+                            moveItem({
+                                item,
+                                targetId,
+                                targetIndex,
+                                isHorizontal,
+                                isChangingDepth: true,
+                                targetParentId: parentId,
+                            });
+                            return;
+                        }
                         moveItem({ item, targetId, targetIndex, isHorizontal });
                         return;
                     }
 
-                    // Changing depth
+                    // Changing depth top to bottom
                     if (isChangingDepth && dropPosition === 'bottom') {
-                        moveItem({ item, targetId, targetIndex, isChangingDepth: true, targetParentId: parentId });
+                        moveItem({
+                            item,
+                            targetId,
+                            targetIndex: targetIndex + 1,
+                            isChangingDepth: true,
+                            targetParentId: parentId,
+                        });
                         return;
                     }
 
@@ -177,12 +210,32 @@ export const FolderWithDrag = ({
 
                     // Top to bottom
                     if (item.index < props.index) {
+                        if (isChangingParent) {
+                            moveItem({
+                                item,
+                                targetId,
+                                targetIndex: targetIndex + 1,
+                                targetParentId: parentId,
+                                isChangingDepth: true,
+                            });
+                            return;
+                        }
                         moveItem({ item, targetId, targetIndex, isHorizontal });
                         return;
                     }
 
                     // Bottom to top
                     if (item.index > props.index) {
+                        if (isChangingParent) {
+                            moveItem({
+                                item,
+                                targetId,
+                                targetIndex: targetIndex + 1,
+                                targetParentId: parentId,
+                                isChangingDepth: true,
+                            });
+                            return;
+                        }
                         moveItem({ item, targetId, targetIndex: targetIndex + 1, isHorizontal });
                         return;
                     }
@@ -214,21 +267,26 @@ export const FolderWithDrag = ({
         ),
         [hoverBarColor, props.depth, props.spaceLeft],
     );
+
+    const shouldBeHovering =
+        (isNotFolder && isOver) ||
+        (isOver &&
+            hoverState !== 'none' &&
+            !(props.index === 0 && hoverState === 'top') &&
+            (hoverState === 'middle' || hoverState === 'top'));
+    const shouldTopBarAppear = !isNotFolder && isOver && props.index === 0 && hoverState === 'top';
+    const shouldBottomBarAppear = !isNotFolder && isOver && hoverState === 'bottom';
+
     return (
         <Wrapper
             hoverColor={hoverColor}
-            hovering={
-                isOver &&
-                hoverState !== 'none' &&
-                !(props.index === 0 && hoverState === 'top') &&
-                (hoverState === 'middle' || hoverState === 'top')
-            }
+            hovering={shouldBeHovering}
             id={`__kreme-draggable-wrapper-${props.id}`}
             onMouseLeave={() => setHoverState('none')}
         >
-            {isOver && props.index === 0 && hoverState === 'top' && MemoizedHoverBar}
+            {shouldTopBarAppear && MemoizedHoverBar}
             <Folder {...props} ref={ref} />
-            {isOver && hoverState === 'bottom' && MemoizedHoverBar}
+            {shouldBottomBarAppear && MemoizedHoverBar}
         </Wrapper>
     );
 };

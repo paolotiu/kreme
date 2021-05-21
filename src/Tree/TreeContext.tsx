@@ -105,7 +105,7 @@ export const TreeContextProvider = ({ children, initialData, onDrop, openOnDrop 
             // Check if this item is the target
             if (item.id === targetId) {
                 if (item.children) {
-                    item.children.push(itemToInsert);
+                    item.children.splice(targetIndex, 0, itemToInsert);
                 } else {
                     item.children = [itemToInsert];
                 }

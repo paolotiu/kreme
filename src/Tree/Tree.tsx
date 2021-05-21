@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import styled from '@emotion/styled';
-import { DndProvider, usePreview } from 'react-dnd-multi-backend';
+import { usePreview, DndProvider } from 'react-dnd-multi-backend';
 
 import HTML5toTouch from 'react-dnd-multi-backend/dist/esm/HTML5toTouch'; // or any other pipeline
 
@@ -8,7 +8,7 @@ import Folder from './Folder';
 import File from './File';
 import { OnDropFunc, TreeDataType, TreeItemClickHandler } from './types';
 import TreeContext, { TreeContextProvider } from './TreeContext';
-import FolderWithDrag from './FolderWithDrag';
+import FolderWithDrag, { DNDProps } from './FolderWithDrag';
 
 const StyledTree = styled.div<{ depth: number }>`
     --margin-left: 5px;
@@ -18,7 +18,7 @@ const StyledTree = styled.div<{ depth: number }>`
     width: 100%;
 `;
 
-export interface TreeProps {
+export interface BaseTreeProps {
     data?: TreeDataType[];
     noDropOnEmpty?: boolean;
     onFileClick?: TreeItemClickHandler;
@@ -34,11 +34,12 @@ export interface TreeProps {
 
     // DnD Props
     onFolderDrop?: OnDropFunc;
-    hoverColor?: string;
-    hoverBarColor?: string;
+    customProvider?: boolean;
 }
 
-const Tree = ({
+export type TreeProps<DropTypes extends string = string> = BaseTreeProps & DNDProps<DropTypes>;
+
+const Tree = <DropTypes extends string>({
     data = [],
     noDropOnEmpty,
     onFolderClick,
@@ -52,7 +53,9 @@ const Tree = ({
     path = '|',
     hoverColor,
     hoverBarColor,
-}: TreeProps) => {
+    acceptedDropTypes,
+    onDrop,
+}: TreeProps<DropTypes>) => {
     const { moveItem } = useContext(TreeContext);
 
     return (
@@ -61,6 +64,8 @@ const Tree = ({
                 if (item.type === 'folder') {
                     return draggable ? (
                         <FolderWithDrag
+                            acceptedDropTypes={acceptedDropTypes}
+                            onDrop={onDrop}
                             hoverBarColor={hoverBarColor}
                             hoverColor={hoverColor}
                             isOpen={item.isOpen}
@@ -81,6 +86,8 @@ const Tree = ({
                             index={index}
                         >
                             <Tree
+                                acceptedDropTypes={acceptedDropTypes}
+                                onDrop={onDrop}
                                 path={path + '-' + item.id}
                                 parentId={item.id}
                                 key={item.id}
@@ -94,11 +101,22 @@ const Tree = ({
                                 hoverBarColor={hoverBarColor}
                                 hoverColor={hoverColor}
                             />
-                            {!!item.children?.length && <div style={{ width: '100%', height: '4px' }} />}
+                            {!!item.children?.length && (
+                                <div
+                                    style={{ width: '100%', height: '4px', cursor: 'default' }}
+                                    onDragStart={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                    }}
+                                    draggable
+                                />
+                            )}
                         </FolderWithDrag>
                     ) : (
                         <Folder
                             spaceLeft={spaceLeft}
+                            isOpen={item.isOpen}
+                            index={index}
                             name={item.name}
                             key={item.id + item.type}
                             noDropOnEmpty={noDropOnEmpty}
@@ -159,8 +177,9 @@ const MyPreview = () => {
     // render your preview
 };
 
-const TreeWrapper = ({ ...props }: TreeProps) => {
+const TreeWrapper = <DropTypes extends string>({ customProvider, ...props }: TreeProps<DropTypes>) => {
     const { data } = useContext(TreeContext);
+
     return (
         <DndProvider options={HTML5toTouch}>
             <Tree {...props} data={data} />
@@ -169,7 +188,7 @@ const TreeWrapper = ({ ...props }: TreeProps) => {
     );
 };
 
-const TreeWithContextWrapper = ({ data, ...props }: TreeProps) => {
+const TreeWithContextWrapper = <DropTypes extends string>({ data, ...props }: TreeProps<DropTypes>) => {
     return (
         <TreeContextProvider initialData={data || []} onDrop={props.onFolderDrop}>
             <TreeWrapper data={data} {...props} />

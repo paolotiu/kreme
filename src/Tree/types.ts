@@ -41,3 +41,7 @@ export type OnDropFunc = (data: {
     targetId: TreeItemID;
     targetIndex: number;
 }) => void;
+
+// Credits: Spodera
+// https://github.com/microsoft/TypeScript/issues/20965#issuecomment-719976439
+export type ValuesOf<T extends readonly any[]> = T[number];
