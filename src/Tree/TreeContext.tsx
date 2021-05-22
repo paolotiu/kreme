@@ -1,5 +1,5 @@
 /* eslint-disable no-param-reassign */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import cloneDeep from 'lodash.clonedeep';
 import { arrayMove } from '../utils/arrayMove';
 import {
@@ -32,8 +32,12 @@ interface TreeContextProps {
     openOnDrop?: boolean;
 }
 
+const rootToFolder = (data: TreeDataType[]): TreeDataType => ({ type: 'folder', id: -1, name: 'root', children: data });
+
 export const TreeContextProvider = ({ children, initialData, onDrop, openOnDrop = false }: TreeContextProps) => {
     const [data, setData] = useState(initialData);
+    const targetParentRef = useRef<TreeDataType>(rootToFolder(data));
+    const sourceParentRef = useRef<TreeDataType>(rootToFolder(data));
 
     useEffect(() => {
         // Get updated data
@@ -64,11 +68,14 @@ export const TreeContextProvider = ({ children, initialData, onDrop, openOnDrop 
     const moveItem: MoveItemFunc = (params) => {
         const { item: itemToInsert, targetIndex, isHorizontal } = params;
         let { targetId } = params;
+
         if (isHorizontal) {
             const updateData = (item: TreeDataType) => {
                 // Base case
                 if (itemToInsert.parentId === item.id) {
                     item.children = arrayMove(item.children || [], itemToInsert.index, targetIndex);
+                    sourceParentRef.current = item;
+                    targetParentRef.current = item;
                     return item;
                 }
                 item.children = item.children?.map(updateData);
@@ -77,11 +84,25 @@ export const TreeContextProvider = ({ children, initialData, onDrop, openOnDrop 
             };
 
             if (itemToInsert.parentId === -1) {
-                setData((prevData) => arrayMove(prevData, itemToInsert.index, targetIndex));
+                setData((prevData) => {
+                    const updatedData = arrayMove(prevData, itemToInsert.index, targetIndex);
+                    sourceParentRef.current = rootToFolder(updatedData);
+                    targetParentRef.current = rootToFolder(updatedData);
+                    return updatedData;
+                });
             } else {
                 setData((prevData) => prevData.map(updateData));
             }
-
+            if (onDrop) {
+                onDrop({
+                    sourceId: itemToInsert.id,
+                    sourceIndex: itemToInsert.index,
+                    targetId,
+                    targetIndex,
+                    sourceParent: sourceParentRef.current,
+                    targetParent: targetParentRef.current,
+                });
+            }
             return;
         }
 
@@ -95,6 +116,7 @@ export const TreeContextProvider = ({ children, initialData, onDrop, openOnDrop 
                 if (item.id === targetId) {
                     shouldOpenHandler(item);
                     item.children = [itemToInsert];
+                    targetParentRef.current = item;
                 }
                 return item;
             }
@@ -110,12 +132,14 @@ export const TreeContextProvider = ({ children, initialData, onDrop, openOnDrop 
                     item.children = [itemToInsert];
                 }
                 shouldOpenHandler(item);
+                targetParentRef.current = item;
                 return item;
             }
 
             // Remove item from inital place
             if (itemToInsert.parentId === item.id) {
                 item.children = item.children.filter((i) => i.id !== itemToInsert.id);
+                sourceParentRef.current = item;
             }
 
             return item;
@@ -133,10 +157,26 @@ export const TreeContextProvider = ({ children, initialData, onDrop, openOnDrop 
 
             const updatedData = dataCopy.map(updateItem);
 
+            if (targetId === -1) {
+                targetParentRef.current = rootToFolder(updatedData);
+            }
+
+
+            if (itemToInsert.parentId === -1) {
+                sourceParentRef.current = rootToFolder(updatedData)
+            }
             return updatedData;
         });
+
         if (onDrop) {
-            onDrop({ sourceId: itemToInsert.id, sourceIndex: itemToInsert.index, targetId, targetIndex });
+            onDrop({
+                sourceId: itemToInsert.id,
+                sourceIndex: itemToInsert.index,
+                targetId,
+                targetIndex,
+                sourceParent: sourceParentRef.current,
+                targetParent: targetParentRef.current,
+            });
         }
     };
 

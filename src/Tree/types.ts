@@ -40,6 +40,8 @@ export type OnDropFunc = (data: {
     sourceIndex: number;
     targetId: TreeItemID;
     targetIndex: number;
+    targetParent: TreeDataType;
+    sourceParent: TreeDataType;
 }) => void;
 
 // Credits: Spodera
