@@ -52,7 +52,7 @@ const StyledFolder = styled.div<{ depth: number; spaceLeft?: string }>`
         }
     }
     .__kreme-folder-label {
-        padding: 0.2rem 0.3rem;
+        padding: 0.25rem 0.3rem;
         padding-left: ${(props) => props.spaceLeft || 'initial'};
         display: flex;
         position: relative;

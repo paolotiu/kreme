@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
 import styled from '@emotion/styled';
 import { usePreview, DndProvider } from 'react-dnd-multi-backend';
-
 import HTML5toTouch from 'react-dnd-multi-backend/dist/esm/HTML5toTouch'; // or any other pipeline
 
 import Folder from './Folder';
@@ -181,7 +180,7 @@ const TreeWrapper = <DropTypes extends string>({ customProvider, ...props }: Tre
     const { data } = useContext(TreeContext);
 
     return (
-        <DndProvider options={HTML5toTouch}>
+        <DndProvider options={HTML5toTouch} key={1}>
             <Tree {...props} data={data} />
             <MyPreview />
         </DndProvider>
