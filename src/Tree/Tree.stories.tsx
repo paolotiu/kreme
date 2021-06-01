@@ -82,7 +82,6 @@ WithDrag.args = {
     data: structure,
     draggable: true,
     noDropOnEmpty: false,
-    onInputSubmit: (id, name) => console.log({ id, name }),
     onFolderDrop: action('onFolderDrop'),
 };
 
