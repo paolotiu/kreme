@@ -5,10 +5,12 @@ export interface TreeDataType {
     children?: TreeDataType[];
     id: TreeItemID;
     isOpen?: boolean;
+    isInput?: boolean;
 }
 
 export type TreeItemClickHandler = (id: TreeItemID) => void;
-
+export type TreeItemInputHandler = (data: { id: TreeItemID; newName: string; oldName: string }) => void;
+export type TreeItemToggleHandler = (id: TreeItemID, isOpen: boolean) => void;
 export type AddFolder = (targetDepth: number, targetIndex: number, item: TreeDataType) => void;
 export type RemoveFolderChild = (id: TreeItemID, index: number) => void;
 
@@ -42,8 +44,10 @@ export type OnDropFunc = (data: {
     targetIndex: number;
     targetParent: TreeDataType;
     sourceParent: TreeDataType;
+    newTree: TreeDataType[];
 }) => void;
 
+export type UpdateStateFunc = (id: TreeItemID, state: Partial<TreeDataType>) => void;
 // Credits: Spodera
 // https://github.com/microsoft/TypeScript/issues/20965#issuecomment-719976439
 export type ValuesOf<T extends readonly any[]> = T[number];

@@ -5,7 +5,7 @@ import HTML5toTouch from 'react-dnd-multi-backend/dist/esm/HTML5toTouch'; // or 
 
 import Folder from './Folder';
 import File from './File';
-import { OnDropFunc, TreeDataType, TreeItemClickHandler } from './types';
+import { OnDropFunc, TreeDataType, TreeItemClickHandler, TreeItemInputHandler, TreeItemToggleHandler } from './types';
 import TreeContext, { TreeContextProvider } from './TreeContext';
 import FolderWithDrag, { DNDProps } from './FolderWithDrag';
 
@@ -30,10 +30,13 @@ export interface BaseTreeProps {
     draggable?: boolean;
     parentId?: string | number;
     path?: string;
+    withActionButton?: boolean;
 
     // DnD Props
     onFolderDrop?: OnDropFunc;
     customProvider?: boolean;
+    onInputSubmit?: TreeItemInputHandler;
+    onItemToggle?: TreeItemToggleHandler;
 }
 
 export type TreeProps<DropTypes extends string = string> = BaseTreeProps & DNDProps<DropTypes>;
@@ -54,6 +57,9 @@ const Tree = <DropTypes extends string>({
     hoverBarColor,
     acceptedDropTypes,
     onDrop,
+    onInputSubmit,
+    onItemToggle,
+    withActionButton,
 }: TreeProps<DropTypes>) => {
     const { moveItem } = useContext(TreeContext);
 
@@ -63,6 +69,9 @@ const Tree = <DropTypes extends string>({
                 if (item.type === 'folder') {
                     return draggable ? (
                         <FolderWithDrag
+                            withActionButton={withActionButton}
+                            onToggle={onItemToggle}
+                            onInputSubmit={onInputSubmit}
                             acceptedDropTypes={acceptedDropTypes}
                             onDrop={onDrop}
                             hoverBarColor={hoverBarColor}
@@ -83,8 +92,11 @@ const Tree = <DropTypes extends string>({
                             depth={depth}
                             calledRecursively
                             index={index}
+                            isInput={item.isInput}
                         >
                             <Tree
+                                onItemToggle={onItemToggle}
+                                onInputSubmit={onInputSubmit}
                                 acceptedDropTypes={acceptedDropTypes}
                                 onDrop={onDrop}
                                 path={path + '-' + item.id}
@@ -122,10 +134,15 @@ const Tree = <DropTypes extends string>({
                             onLabelClick={onFolderClick}
                             onActionClick={onFolderActionClick}
                             id={item.id}
+                            onToggle={onItemToggle}
+                            withActionButton={withActionButton}
                             depth={depth}
                             calledRecursively
                         >
                             <Tree
+                                hoverColor={hoverColor}
+                                withActionButton={withActionButton}
+                                onItemToggle={onItemToggle}
                                 path={path + '-' + item.id}
                                 parentId={item.id}
                                 key={item.id}

@@ -9,6 +9,7 @@ import {
     OnDropFunc,
     ToggleItemOpenFunc,
     TreeDataType,
+    UpdateStateFunc,
 } from './types';
 
 const isChangingDepthParams = (
@@ -22,6 +23,7 @@ interface TreeContextValue {
     any?: any;
     moveItem: MoveItemFunc;
     toggleItemOpen: ToggleItemOpenFunc;
+    updateState: UpdateStateFunc;
 }
 export const TreeContext = React.createContext<TreeContextValue>({} as TreeContextValue);
 
@@ -65,9 +67,29 @@ export const TreeContextProvider = ({ children, initialData, onDrop, openOnDrop 
     const shouldOpenHandler = (item: TreeDataType) => {
         item.isOpen = openOnDrop ? true : item.isOpen;
     };
+
+    const updateState: UpdateStateFunc = (id, state) => {
+        const updateAndFind = (item: TreeDataType) => {
+            // Base case
+            if (item.id === id) {
+                Object.assign(item, state);
+                return item;
+            }
+
+            item.children = item.children?.map(updateAndFind);
+            return item;
+        };
+
+        setData((prevData) => {
+            const dataCopy = cloneDeep(prevData);
+            return dataCopy.map(updateAndFind);
+        });
+    };
+
     const moveItem: MoveItemFunc = (params) => {
         const { item: itemToInsert, targetIndex, isHorizontal } = params;
         let { targetId } = params;
+        let newTree: TreeDataType[] = data;
 
         if (isHorizontal) {
             const updateData = (item: TreeDataType) => {
@@ -88,10 +110,15 @@ export const TreeContextProvider = ({ children, initialData, onDrop, openOnDrop 
                     const updatedData = arrayMove(prevData, itemToInsert.index, targetIndex);
                     sourceParentRef.current = rootToFolder(updatedData);
                     targetParentRef.current = rootToFolder(updatedData);
+                    newTree = updatedData;
                     return updatedData;
                 });
             } else {
-                setData((prevData) => prevData.map(updateData));
+                setData((prevData) => {
+                    const updatedData = prevData.map(updateData);
+                    newTree = updatedData;
+                    return updatedData;
+                });
             }
             if (onDrop) {
                 onDrop({
@@ -101,6 +128,7 @@ export const TreeContextProvider = ({ children, initialData, onDrop, openOnDrop 
                     targetIndex,
                     sourceParent: sourceParentRef.current,
                     targetParent: targetParentRef.current,
+                    newTree,
                 });
             }
             return;
@@ -161,10 +189,10 @@ export const TreeContextProvider = ({ children, initialData, onDrop, openOnDrop 
                 targetParentRef.current = rootToFolder(updatedData);
             }
 
-
             if (itemToInsert.parentId === -1) {
-                sourceParentRef.current = rootToFolder(updatedData)
+                sourceParentRef.current = rootToFolder(updatedData);
             }
+            newTree = updatedData;
             return updatedData;
         });
 
@@ -176,11 +204,14 @@ export const TreeContextProvider = ({ children, initialData, onDrop, openOnDrop 
                 targetIndex,
                 sourceParent: sourceParentRef.current,
                 targetParent: targetParentRef.current,
+                newTree,
             });
         }
     };
 
-    return <TreeContext.Provider value={{ data, moveItem, toggleItemOpen }}>{children}</TreeContext.Provider>;
+    return (
+        <TreeContext.Provider value={{ data, moveItem, toggleItemOpen, updateState }}>{children}</TreeContext.Provider>
+    );
 };
 
 export default TreeContext;

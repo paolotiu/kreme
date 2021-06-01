@@ -24,6 +24,7 @@ const structure: TreeDataType[] = [
         type: 'folder',
         name: 'src',
         isOpen: true,
+        isInput: true,
         children: [
             {
                 id: 3,
@@ -42,7 +43,7 @@ const structure: TreeDataType[] = [
             },
             {
                 type: 'folder',
-                name: 'ajskd',
+                name: 'ajskd dasipasjdik jkajdk as asjidjas a jdopjsa d djskad askdj sdjasdk jdkjsa djasdk',
                 id: 23,
             },
             {
@@ -81,7 +82,7 @@ WithDrag.args = {
     data: structure,
     draggable: true,
     noDropOnEmpty: false,
-
+    onInputSubmit: (id, name) => console.log({ id, name }),
     onFolderDrop: action('onFolderDrop'),
 };
 

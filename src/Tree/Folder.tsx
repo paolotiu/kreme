@@ -1,10 +1,10 @@
 import styled from '@emotion/styled';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { AnimatePresence, motion, Variants } from 'framer-motion';
-import React, { CSSProperties, useContext, useMemo } from 'react';
+import React, { CSSProperties, useContext, useEffect, useMemo, useRef } from 'react';
 import Chevron from '../assets/filledChevron.svg';
 import { svgToMotion } from '../utils/svgToMotion';
-import { TreeItemClickHandler } from './types';
+import { TreeItemClickHandler, TreeItemInputHandler, TreeItemToggleHandler } from './types';
 import ItemLabel from './ItemLabel/ItemLabel';
 import TreeContext from './TreeContext';
 
@@ -54,12 +54,19 @@ const StyledFolder = styled.div<{ depth: number; spaceLeft?: string }>`
     .__kreme-folder-label {
         padding: 0.25rem 0.3rem;
         padding-left: ${(props) => props.spaceLeft || 'initial'};
-        display: flex;
+        display: grid;
         position: relative;
+        grid-template-columns: 90% 20px;
         align-items: center;
-        justify-content: space-between;
         span {
             margin-left: var(--margin-left);
+        }
+
+        .__kreme-folder-name {
+            flex: 1;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
         }
         :hover {
             background-color: var(--hover-bg);
@@ -68,9 +75,37 @@ const StyledFolder = styled.div<{ depth: number; spaceLeft?: string }>`
             }
         }
 
+        .__kreme-folder-name-input {
+            width: 80%;
+            position: relative;
+            input {
+                padding: 0;
+                border: none;
+                width: 100%;
+                background-color: transparent;
+                outline: none;
+                :focus-visible {
+                }
+            }
+            input[type='submit'] {
+                width: 0;
+                height: 0;
+            }
+            ::after {
+                content: '';
+                width: 100%;
+                height: 1px;
+                background-color: gray;
+                position: absolute;
+                bottom: -4px;
+                left: 0;
+            }
+        }
+
         .__kreme-folder-label-name {
             display: flex;
             align-items: center;
+            max-width: 100%;
         }
     }
 `;
@@ -88,10 +123,12 @@ export interface TreeFolderProps {
     depth?: number;
     calledRecursively?: boolean;
     spaceLeft?: string;
-    onFolderOpen?: () => void;
+    onToggle?: TreeItemToggleHandler;
     index?: number;
     style?: CSSProperties;
     draggable?: boolean;
+    isInput?: boolean;
+    onInputSubmit?: TreeItemInputHandler;
 }
 
 export interface DraggableFolderProps extends TreeFolderProps {
@@ -125,15 +162,18 @@ const Folder = React.forwardRef<HTMLDivElement, TreeFolderProps | DraggableFolde
             depth = 0,
             calledRecursively = false,
             spaceLeft,
-            onFolderOpen,
             style,
             draggable,
             index,
+            isInput = false,
+            onInputSubmit,
+            onToggle,
         },
         ref,
     ) => {
-        const { toggleItemOpen } = useContext(TreeContext);
+        const { toggleItemOpen, updateState } = useContext(TreeContext);
 
+        const inputRef = useRef<HTMLInputElement>(null);
         const childrenHasData = useMemo(() => {
             let hasData = false;
             React.Children.forEach(children, (child, i) => {
@@ -144,17 +184,50 @@ const Folder = React.forwardRef<HTMLDivElement, TreeFolderProps | DraggableFolde
 
             return hasData;
         }, [children]);
+
+        useEffect(() => {
+            const inputHandler = (e: Event) => {
+                if (onInputSubmit) {
+                    if ((e as KeyboardEvent).key === 'Enter' || e.type === 'mousedown') {
+                        onInputSubmit({
+                            id,
+                            newName: inputRef.current?.value || name,
+                            oldName: name,
+                        });
+                        updateState(id, { name: inputRef.current?.value, isInput: false });
+                    }
+                }
+            };
+
+            if (isInput) {
+                window.addEventListener('mousedown', inputHandler);
+                window.addEventListener('keydown', inputHandler);
+            }
+            return () => {
+                window.removeEventListener('mousedown', inputHandler);
+                window.removeEventListener('keydown', inputHandler);
+            };
+        }, [id, isInput, name, onInputSubmit, updateState]);
+        useEffect(() => {
+            if (isInput) {
+                inputRef.current?.focus();
+                inputRef.current?.select();
+            }
+        }, [isInput]);
+
         const hasChevron = !noDropOnEmpty || (calledRecursively ? childrenHasData : !!children);
         const handleChevronClick = (e: React.MouseEvent | React.KeyboardEvent) => {
             e.preventDefault();
             e.stopPropagation();
             toggleItemOpen(id);
-            if (onFolderOpen) {
-                onFolderOpen();
+            if (onToggle) {
+                onToggle(id, !isOpen);
             }
         };
 
         const handleLabelClick = (e: React.MouseEvent | React.KeyboardEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
             if (onLabelClick) {
                 onLabelClick(id);
             } else {
@@ -173,7 +246,7 @@ const Folder = React.forwardRef<HTMLDivElement, TreeFolderProps | DraggableFolde
                     tabIndex={0}
                     className='__kreme-folder-label'
                     onClick={handleLabelClick}
-                    onKeyPress={handleLabelClick}
+                    // onKeyPress={handleLabelClick}
                 >
                     <div className='__kreme-folder-label-name'>
                         <ChevronContainer
@@ -181,7 +254,7 @@ const Folder = React.forwardRef<HTMLDivElement, TreeFolderProps | DraggableFolde
                             tabIndex={0}
                             style={{ visibility: hasChevron ? 'initial' : 'hidden' }}
                             onClick={handleChevronClick}
-                            onKeyPress={handleChevronClick}
+                            // onKeyPress={handleChevronClick}
                         >
                             <MotionChevron
                                 // Added style to work around a bug https://github.com/framer/motion/issues/255#issuecomment-628397719
@@ -191,9 +264,30 @@ const Folder = React.forwardRef<HTMLDivElement, TreeFolderProps | DraggableFolde
                                 animate={isOpen ? { rotate: 180 } : { rotate: 90 }}
                             />
                         </ChevronContainer>
-                        <span>{name}</span>
+                        {isInput ? (
+                            <span className='__kreme-folder-name-input'>
+                                <input
+                                    ref={inputRef}
+                                    type='text'
+                                    name='folderName'
+                                    defaultValue={name}
+                                    onMouseDown={(e) => {
+                                        // Prevent window bubbling
+                                        e.stopPropagation();
+                                    }}
+                                    onClick={(e) => {
+                                        // Prevent label click
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                    }}
+                                    autoComplete='off'
+                                />
+                            </span>
+                        ) : (
+                            <span className='__kreme-folder-name'>{name}</span>
+                        )}
                     </div>
-                    {withActionButton && (
+                    {withActionButton && !isInput && (
                         <ActionContainer
                             className='__kreme-folder-action-container'
                             as='button'
